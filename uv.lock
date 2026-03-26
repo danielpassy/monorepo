@@ -1,0 +1,25 @@
+version = 1
+revision = 3
+requires-python = ">=3.14"
+
+[manifest]
+members = [
+    "monorepo",
+    "monorepo-web",
+    "monorepo-worker",
+]
+
+[[package]]
+name = "monorepo"
+version = "0.1.0"
+source = { virtual = "." }
+
+[[package]]
+name = "monorepo-web"
+version = "0.1.0"
+source = { virtual = "apps/web" }
+
+[[package]]
+name = "monorepo-worker"
+version = "0.1.0"
+source = { virtual = "apps/worker" }
