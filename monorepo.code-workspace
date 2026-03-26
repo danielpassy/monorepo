@@ -1,0 +1,21 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "name": "web-app",
+      "path": "apps/web"
+    },
+    {
+      "name": "worker-app",
+      "path": "apps/worker"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/.venv": true
+    }
+  }
+}
