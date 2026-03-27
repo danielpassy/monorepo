@@ -1,0 +1,2 @@
+CREATE DATABASE web_app;
+CREATE DATABASE worker_app;
