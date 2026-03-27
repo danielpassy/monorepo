@@ -1,0 +1,33 @@
+name: Get Diff
+description: Get changed files for the current push or pull request
+
+outputs:
+  changed_files_json:
+    description: JSON array of changed files
+    value: ${{ steps.diff.outputs.changed_files_json }}
+
+runs:
+  using: composite
+  steps:
+    - name: Detect diff base
+      id: base
+      shell: bash
+      run: |
+        if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+          echo "base=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "base=${{ github.event.before }}" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Collect changed files
+      id: diff
+      shell: bash
+      run: |
+        git diff --name-only "${{ steps.base.outputs.base }}...${GITHUB_SHA}" > changed-files.txt
+        uv run --no-project python - <<'PY' >> "$GITHUB_OUTPUT"
+        import json
+        from pathlib import Path
+
+        files = [line for line in Path("changed-files.txt").read_text().splitlines() if line]
+        print(f"changed_files_json={json.dumps(files)}")
+        PY
