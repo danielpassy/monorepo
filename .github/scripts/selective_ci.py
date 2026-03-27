@@ -6,9 +6,9 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from ci.dependency_map import APPS, CI_CONFIG_PATHS, INFRA_PATHS, RUN_ALL_PATHS
+from dependency_map import APPS, CI_CONFIG_PATHS, INFRA_PATHS, RUN_ALL_PATHS
 
 
 def matches_any(path: str, patterns: list[str]) -> bool:

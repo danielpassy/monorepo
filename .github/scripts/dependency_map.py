@@ -8,14 +8,13 @@ RUN_ALL_PATHS = [
 
 INFRA_PATHS = [
     "docker-compose.yml",
-    "dev/**",
+    "local/**",
 ]
 
 CI_CONFIG_PATHS = [
     ".github/workflows/**",
     ".github/actions/**",
-    "ci/**",
-    "scripts/selective_ci.py",
+    ".github/scripts/**",
 ]
 
 APPS = {
