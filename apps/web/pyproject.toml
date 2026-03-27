@@ -6,3 +6,13 @@ requires-python = ">=3.14"
 dependencies = [
     "fastapi>=0.116.0",
 ]
+
+[dependency-groups]
+dev = [
+    "taskipy>=1.14.1",
+    "pytest>=8.4.0",
+]
+
+[tool.taskipy.tasks]
+test = "python -m pytest tests/"
+test-project = "python -m pytest tests/test_project_web.py"

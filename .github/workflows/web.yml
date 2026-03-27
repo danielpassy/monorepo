@@ -1,0 +1,15 @@
+name: Web
+
+on:
+  workflow_call:
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+      - name: Run web tests
+        run: ./apps/web/ci/run-tests.sh
+      - name: Run web project tests
+        run: ./apps/web/ci/run-project-tests.sh
