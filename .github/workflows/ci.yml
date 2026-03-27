@@ -24,14 +24,14 @@ jobs:
         uses: ./.github/actions/get-diff
       - name: Run selective CI
         id: select
-        run: uv run --no-project python scripts/selective_ci.py --changed-files-json '${{ steps.diff.outputs.changed_files_json }}' --github-output "$GITHUB_OUTPUT"
+        run: uv run --no-project python .github/scripts/selective_ci.py --changed-files-json '${{ steps.diff.outputs.changed_files_json }}' --github-output "$GITHUB_OUTPUT"
 
   compliance:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - name: Run compliance checks
-        run: ./ci/run-compliance.sh
+        run: ./.github/scripts/run-compliance.sh
 
   web:
     needs: changes

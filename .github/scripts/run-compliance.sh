@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 if git ls-files '*.env' | grep -q .; then
   echo "Committed .env files are not allowed"
