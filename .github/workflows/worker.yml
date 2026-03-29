@@ -28,17 +28,16 @@ jobs:
           push: true
           cache-from: type=gha,scope=monorepo-base
           cache-to: type=gha,mode=max,scope=monorepo-base
-      - name: Build worker test image
+      - name: Build worker image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: apps/worker/Dockerfile
-          target: test
           build-args: |
             BASE_IMAGE=${{ env.BASE_IMAGE }}
-          tags: monorepo-worker:test
+          tags: monorepo-worker:ci
           load: true
-          cache-from: type=gha,scope=worker-test
-          cache-to: type=gha,mode=max,scope=worker-test
+          cache-from: type=gha,scope=worker
+          cache-to: type=gha,mode=max,scope=worker
       - name: Run worker tests
-        run: docker run --rm monorepo-worker:test
+        run: docker run --rm monorepo-worker:ci uv run task test
