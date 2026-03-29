@@ -1,4 +1,4 @@
-from shared_logging import format_log_line
+from logging import format_log_line
 
 
 def test_format_log_line() -> None:
