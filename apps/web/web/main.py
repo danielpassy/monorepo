@@ -1,12 +1,9 @@
 from fastapi import FastAPI
-from web._shared.auth import decode_subject, issue_token
+from web._shared.logging import format_log_line
 
 app = FastAPI(title="web-app")
-AUTH_SUBJECT = decode_subject(
-    issue_token("web-app", "secret-secret-secret-secret-1234"),
-    "secret-secret-secret-secret-1234",
-)
+STARTUP_LOG = format_log_line("web", "service_started", service=app.title)
 
 
 def run() -> None:
-    print(f"You are running the {app.title} as {AUTH_SUBJECT}")
+    print(STARTUP_LOG)
