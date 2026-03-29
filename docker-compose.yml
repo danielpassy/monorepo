@@ -1,4 +1,10 @@
 services:
+  base:
+    image: monorepo-python-base:dev
+    build:
+      context: .
+      dockerfile: docker/base.Dockerfile
+
   postgres:
     image: postgres:17
     environment:
@@ -15,6 +21,67 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+      start_period: 5s
+
+  web:
+    image: monorepo-web:dev
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: runtime
+      args:
+        BASE_IMAGE: monorepo-python-base:dev
+    environment:
+      DATABASE_URL: postgresql://monorepo:monorepo@postgres:5432/web_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  worker:
+    image: monorepo-worker:dev
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+      target: runtime
+      args:
+        BASE_IMAGE: monorepo-python-base:dev
+    environment:
+      DATABASE_URL: postgresql://monorepo:monorepo@postgres:5432/worker_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web-test:
+    image: monorepo-web:test
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: test
+      args:
+        BASE_IMAGE: monorepo-python-base:dev
+    environment:
+      DATABASE_URL: postgresql://monorepo:monorepo@postgres:5432/web_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - test
+
+  worker-test:
+    image: monorepo-worker:test
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+      target: test
+      args:
+        BASE_IMAGE: monorepo-python-base:dev
+    environment:
+      DATABASE_URL: postgresql://monorepo:monorepo@postgres:5432/worker_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - test
 
 volumes:
   postgres-data:
