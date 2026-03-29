@@ -9,6 +9,7 @@ RUN_ALL_PATHS = [
 INFRA_PATHS = [
     "docker-compose.yml",
     "local/**",
+    "infra/**",
 ]
 
 CI_CONFIG_PATHS = [
