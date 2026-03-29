@@ -28,17 +28,16 @@ jobs:
           push: true
           cache-from: type=gha,scope=monorepo-base
           cache-to: type=gha,mode=max,scope=monorepo-base
-      - name: Build web test image
+      - name: Build web image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: apps/web/Dockerfile
-          target: test
           build-args: |
             BASE_IMAGE=${{ env.BASE_IMAGE }}
-          tags: monorepo-web:test
+          tags: monorepo-web:ci
           load: true
-          cache-from: type=gha,scope=web-test
-          cache-to: type=gha,mode=max,scope=web-test
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
       - name: Run web tests
-        run: docker run --rm monorepo-web:test
+        run: docker run --rm monorepo-web:ci uv run task test

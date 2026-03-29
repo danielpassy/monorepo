@@ -28,7 +28,6 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-      target: runtime
       args:
         BASE_IMAGE: monorepo-python-base:dev
     environment:
@@ -42,7 +41,6 @@ services:
     build:
       context: .
       dockerfile: apps/worker/Dockerfile
-      target: runtime
       args:
         BASE_IMAGE: monorepo-python-base:dev
     environment:
@@ -50,38 +48,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-
-  web-test:
-    image: monorepo-web:test
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-      target: test
-      args:
-        BASE_IMAGE: monorepo-python-base:dev
-    environment:
-      DATABASE_URL: postgresql://monorepo:monorepo@postgres:5432/web_app
-    depends_on:
-      postgres:
-        condition: service_healthy
-    profiles:
-      - test
-
-  worker-test:
-    image: monorepo-worker:test
-    build:
-      context: .
-      dockerfile: apps/worker/Dockerfile
-      target: test
-      args:
-        BASE_IMAGE: monorepo-python-base:dev
-    environment:
-      DATABASE_URL: postgresql://monorepo:monorepo@postgres:5432/worker_app
-    depends_on:
-      postgres:
-        condition: service_healthy
-    profiles:
-      - test
 
 volumes:
   postgres-data:
