@@ -1,0 +1,16 @@
+.git
+.github
+.venv
+.vscode
+__pycache__
+*.pyc
+
+.env
+apps/*/.env
+
+apps/*/.pytest_cache
+apps/*/.venv
+apps/*/.vscode
+
+blog
+airflow
