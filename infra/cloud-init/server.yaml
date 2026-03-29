@@ -1,0 +1,13 @@
+#cloud-config
+package_update: true
+
+runcmd:
+  - |
+    PUBLIC_IP=$(curl -s http://169.254.169.254/hetzner/v1/metadata/public-ipv4)
+    # Find the interface that has our private IP
+    PRIV_IFACE=$(ip -o addr show | grep '${server_private_ip}' | awk '{print $2}')
+    curl -sfL https://get.k3s.io | sh -s - server \
+      --tls-san "$PUBLIC_IP" \
+      --node-ip ${server_private_ip} \
+      --advertise-address ${server_private_ip} \
+      --flannel-iface "$PRIV_IFACE"
