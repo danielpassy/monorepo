@@ -2,11 +2,115 @@ name: Infra
 
 on:
   workflow_call:
+    inputs:
+      event_name:
+        required: true
+        type: string
+    secrets:
+      HCLOUD_TOKEN:
+        required: true
+      S3_ACCESS_KEY_ID:
+        required: true
+      S3_SECRET_ACCESS_KEY:
+        required: true
+      SSH_PUBLIC_KEY:
+        required: true
+      SSH_PRIVATE_KEY:
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
-  infra:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - name: Run infra checks
         run: ./.github/scripts/run-infra.sh
+
+  plan:
+    needs: validate
+    runs-on: ubuntu-latest
+    if: inputs.event_name == 'pull_request'
+    defaults:
+      run:
+        working-directory: infra
+    env:
+      TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
+      TF_VAR_ssh_allowed_ips: '["0.0.0.0/0"]'
+      AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Write SSH keys
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/id_ed25519.pub
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -input=false
+        continue-on-error: true
+
+      - name: Comment plan on PR
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const output = `#### Terraform Plan
+            \`\`\`
+            ${{ steps.plan.outputs.stdout }}
+            \`\`\`
+            *Pushed by: @${{ github.actor }}*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Fail if plan failed
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+  apply:
+    needs: validate
+    runs-on: ubuntu-latest
+    if: inputs.event_name == 'push'
+    environment: production
+    defaults:
+      run:
+        working-directory: infra
+    env:
+      TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
+      TF_VAR_ssh_allowed_ips: '["0.0.0.0/0"]'
+      AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Write SSH keys
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/id_ed25519.pub
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -input=false
