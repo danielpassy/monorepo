@@ -10,6 +10,7 @@ RUN uv sync --frozen --no-install-project
 COPY apps/worker/entrypoint.py ./entrypoint.py
 COPY apps/worker/worker ./worker
 COPY apps/worker/tests ./tests
+COPY shared/logging /shared/logging
 RUN uv sync --frozen
 
 CMD ["uv", "run", "task", "test"]
@@ -22,6 +23,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY apps/worker/entrypoint.py ./entrypoint.py
 COPY apps/worker/worker ./worker
+COPY shared/logging /shared/logging
 RUN uv sync --frozen --no-dev
 
 CMD ["uv", "run", "python", "entrypoint.py"]

@@ -9,10 +9,18 @@ def _normalize_dependency_name(requirement: str) -> str:
     return match.group(0).lower().replace("_", "-").replace(".", "-")
 
 
+def _shared_root_for(app_root: Path) -> Path:
+    if Path("/shared").is_dir():
+        return Path("/shared")
+    if (app_root / "shared").is_dir():
+        return app_root / "shared"
+    return app_root.parents[1] / "shared"
+
+
 def test_worker_declares_dependencies_for_shared_packages() -> None:
     app_root = Path(__file__).resolve().parents[1]
-    repo_root = app_root.parents[1]
     shared_dir = app_root / "worker" / "_shared"
+    shared_root = _shared_root_for(app_root)
 
     app_pyproject = tomllib.loads((app_root / "pyproject.toml").read_text())
     app_dependencies = {
@@ -21,10 +29,13 @@ def test_worker_declares_dependencies_for_shared_packages() -> None:
     }
 
     for shared_package in shared_dir.iterdir():
-        if not shared_package.is_symlink():
+        if not shared_package.is_symlink() and not shared_package.is_dir():
             continue
 
-        shared_pyproject = repo_root / "shared" / shared_package.name / "pyproject.toml"
+        shared_pyproject = shared_root / shared_package.name / "pyproject.toml"
+        if not shared_pyproject.is_file():
+            continue
+
         shared_dependencies = tomllib.loads(shared_pyproject.read_text())["project"]["dependencies"]
         missing_dependencies = sorted(
             _normalize_dependency_name(requirement)
