@@ -7,6 +7,7 @@ STARTUP_LOG = format_log_line("web", "service_started", service=app.title)
 
 @app.get("/health")
 def health() -> dict[str, str]:
+    print("Health check requested")
     return {"status": "ok"}
 
 
