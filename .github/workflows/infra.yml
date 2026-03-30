@@ -15,7 +15,9 @@ on:
         required: true
       SSH_PUBLIC_KEY:
         required: true
-      SSH_PRIVATE_KEY:
+      CI_SSH_PUBLIC_KEY:
+        required: true
+      CI_SSH_PRIVATE_KEY:
         required: true
 
 permissions:
@@ -40,6 +42,7 @@ jobs:
     env:
       TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
       TF_VAR_ssh_allowed_ips: '["0.0.0.0/0"]'
+      TF_VAR_ssh_private_key_path: ~/.ssh/monorepo_ci
       AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
     steps:
@@ -51,8 +54,9 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/id_ed25519.pub
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.CI_SSH_PUBLIC_KEY }}" > ~/.ssh/monorepo_ci.pub
+          echo "${{ secrets.CI_SSH_PRIVATE_KEY }}" > ~/.ssh/monorepo_ci
+          chmod 600 ~/.ssh/monorepo_ci
 
       - name: Terraform Init
         run: terraform init
@@ -95,6 +99,7 @@ jobs:
     env:
       TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
       TF_VAR_ssh_allowed_ips: '["0.0.0.0/0"]'
+      TF_VAR_ssh_private_key_path: ~/.ssh/monorepo_ci
       AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
     steps:
@@ -106,8 +111,9 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/id_ed25519.pub
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.CI_SSH_PUBLIC_KEY }}" > ~/.ssh/monorepo_ci.pub
+          echo "${{ secrets.CI_SSH_PRIVATE_KEY }}" > ~/.ssh/monorepo_ci
+          chmod 600 ~/.ssh/monorepo_ci
 
       - name: Terraform Init
         run: terraform init

@@ -17,6 +17,12 @@ variable "ssh_private_key_path" {
 }
 
 
+variable "ci_ssh_public_key_path" {
+  description = "Path to CI SSH public key for server access"
+  type        = string
+  default     = "~/.ssh/monorepo_ci.pub"
+}
+
 variable "ssh_allowed_ips" {
   description = "List of IPs allowed to SSH (CIDR notation)"
   type        = list(string)
