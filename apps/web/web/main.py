@@ -5,5 +5,10 @@ app = FastAPI(title="web-app")
 STARTUP_LOG = format_log_line("web", "service_started", service=app.title)
 
 
+@app.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok"}
+
+
 def run() -> None:
     print(STARTUP_LOG)
