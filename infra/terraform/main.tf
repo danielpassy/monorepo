@@ -36,14 +36,12 @@ provider "hcloud" {
 
 # --- SSH Key ---
 
-resource "hcloud_ssh_key" "default" {
-  name       = "monorepo-deploy"
-  public_key = file(var.ssh_public_key_path)
+data "hcloud_ssh_key" "default" {
+  name = "monorepo-deploy"
 }
 
-resource "hcloud_ssh_key" "ci" {
-  name       = "monorepo-ci"
-  public_key = file(var.ci_ssh_public_key_path)
+data "hcloud_ssh_key" "ci" {
+  name = "monorepo-ci"
 }
 
 # --- Network ---
@@ -108,7 +106,7 @@ resource "hcloud_server" "server" {
   server_type = "cx23"
   image       = "ubuntu-24.04"
   location    = "nbg1"
-  ssh_keys    = [hcloud_ssh_key.default.id, hcloud_ssh_key.ci.id]
+  ssh_keys    = [data.hcloud_ssh_key.default.id, data.hcloud_ssh_key.ci.id]
   firewall_ids = [hcloud_firewall.cluster.id]
 
   user_data = templatefile("${path.module}/cloud-init/server.yaml", {
@@ -177,7 +175,7 @@ resource "hcloud_server" "agent" {
   server_type = "cx23"
   image       = "ubuntu-24.04"
   location    = "nbg1"
-  ssh_keys    = [hcloud_ssh_key.default.id, hcloud_ssh_key.ci.id]
+  ssh_keys    = [data.hcloud_ssh_key.default.id, data.hcloud_ssh_key.ci.id]
   firewall_ids = [hcloud_firewall.cluster.id]
 
   user_data = templatefile("${path.module}/cloud-init/agent.yaml", {
