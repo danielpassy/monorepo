@@ -77,6 +77,8 @@ jobs:
         run: |
           mkdir -p ~/.kube
           echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > ~/.kube/config
+      - name: Apply shared k8s resources
+        run: kubectl apply -f infra/k8s/
       - name: Deploy worker
         run: |
           kubectl apply -f apps/worker/k8s/
