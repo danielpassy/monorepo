@@ -37,7 +37,7 @@ provider "hcloud" {
 # --- SSH Key ---
 
 data "hcloud_ssh_key" "default" {
-  name = "monorepo-deploy"
+  name = "daniel-passy-key"
 }
 
 data "hcloud_ssh_key" "ci" {
