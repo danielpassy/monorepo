@@ -6,6 +6,11 @@ on:
       event_name:
         required: true
         type: string
+    secrets:
+      S3_ACCESS_KEY_ID:
+        required: false
+      S3_SECRET_ACCESS_KEY:
+        required: false
 
 jobs:
   test:
@@ -31,6 +36,7 @@ jobs:
     needs: test
     if: inputs.event_name == 'push'
     runs-on: ubuntu-latest
+    environment: production
     defaults:
       run:
         working-directory: apps/frontend
