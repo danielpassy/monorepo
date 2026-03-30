@@ -3,14 +3,17 @@ DOCKER_IMAGE := hashicorp/terraform:latest
 # You can also override from the command line: make apply SSH_PRIV=~/.ssh/id_rsa SSH_PUB=~/.ssh/id_rsa.pub
 SSH_PUB      := $(HOME)/.ssh/id_ed25519.pub
 SSH_PRIV     := $(HOME)/.ssh/id_ed25519
+CI_SSH_PUB   := $(HOME)/.ssh/monorepo_ci.pub
 
 TF = docker run --rm -it \
 	--env-file $(CURDIR)/.env \
 	-e TF_VAR_ssh_public_key_path=/root/.ssh/id_ed25519.pub \
 	-e TF_VAR_ssh_private_key_path=/root/.ssh/id_ed25519 \
+	-e TF_VAR_ci_ssh_public_key_path=/root/.ssh/monorepo_ci.pub \
 	-v $(CURDIR):/workspace \
 	-v $(SSH_PUB):/root/.ssh/id_ed25519.pub:ro \
 	-v $(SSH_PRIV):/root/.ssh/id_ed25519:ro \
+	-v $(CI_SSH_PUB):/root/.ssh/monorepo_ci.pub:ro \
 	-w /workspace \
 	$(DOCKER_IMAGE)
 
