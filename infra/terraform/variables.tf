@@ -10,7 +10,14 @@ variable "ssh_private_key_path" {
   default     = "~/.ssh/id_ed25519"
 }
 
+variable "project_name" {
+  description = "Project name used for naming resources"
+  type        = string
+  default     = "monorepo"
+}
+
 variable "ssh_allowed_ips" {
   description = "List of IPs allowed to SSH (CIDR notation)"
   type        = list(string)
 }
+
