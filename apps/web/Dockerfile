@@ -13,4 +13,5 @@ COPY apps/web/tests ./tests
 COPY shared/logging /shared/logging
 RUN uv sync --frozen
 
+
 CMD ["uv", "run", "python", "entrypoint.py"]

@@ -32,6 +32,8 @@ services:
         BASE_IMAGE: monorepo-python-base:dev
     environment:
       DATABASE_URL: postgresql://monorepo:monorepo@postgres:5432/web_app
+    ports:
+      - "8001:8000"
     depends_on:
       postgres:
         condition: service_healthy
