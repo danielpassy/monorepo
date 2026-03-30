@@ -2,9 +2,16 @@ name: Worker
 
 on:
   workflow_call:
+    inputs:
+      event_name:
+        required: true
+        type: string
+    secrets:
+      KUBECONFIG_B64:
+        required: false
 
 jobs:
-  worker:
+  test:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -35,9 +42,43 @@ jobs:
           file: apps/worker/Dockerfile
           build-args: |
             BASE_IMAGE=${{ env.BASE_IMAGE }}
-          tags: monorepo-worker:ci
+          tags: |
+            ghcr.io/danielpassy/monorepo-worker:${{ github.sha }}
+            ghcr.io/danielpassy/monorepo-worker:latest
           load: true
           cache-from: type=gha,scope=worker
           cache-to: type=gha,mode=max,scope=worker
       - name: Run worker tests
-        run: docker run --rm monorepo-worker:ci uv run task test
+        run: docker run --rm ghcr.io/danielpassy/monorepo-worker:${{ github.sha }} uv run task test
+      - name: Push worker image
+        if: inputs.event_name == 'push'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/worker/Dockerfile
+          build-args: |
+            BASE_IMAGE=${{ env.BASE_IMAGE }}
+          tags: |
+            ghcr.io/danielpassy/monorepo-worker:${{ github.sha }}
+            ghcr.io/danielpassy/monorepo-worker:latest
+          push: true
+          cache-from: type=gha,scope=worker
+
+  deploy:
+    needs: test
+    if: inputs.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+      - name: Write kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > ~/.kube/config
+      - name: Deploy worker
+        run: |
+          kubectl apply -f apps/worker/k8s/
+          kubectl set image deployment/worker worker=ghcr.io/danielpassy/monorepo-worker:${{ github.sha }} -n monorepo
+          kubectl rollout status deployment/worker -n monorepo --timeout=120s

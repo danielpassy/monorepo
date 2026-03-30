@@ -2,9 +2,16 @@ name: Web
 
 on:
   workflow_call:
+    inputs:
+      event_name:
+        required: true
+        type: string
+    secrets:
+      KUBECONFIG_B64:
+        required: false
 
 jobs:
-  web:
+  test:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -35,9 +42,43 @@ jobs:
           file: apps/web/Dockerfile
           build-args: |
             BASE_IMAGE=${{ env.BASE_IMAGE }}
-          tags: monorepo-web:ci
+          tags: |
+            ghcr.io/danielpassy/monorepo-web:${{ github.sha }}
+            ghcr.io/danielpassy/monorepo-web:latest
           load: true
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
       - name: Run web tests
-        run: docker run --rm monorepo-web:ci uv run task test
+        run: docker run --rm ghcr.io/danielpassy/monorepo-web:${{ github.sha }} uv run task test
+      - name: Push web image
+        if: inputs.event_name == 'push'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          build-args: |
+            BASE_IMAGE=${{ env.BASE_IMAGE }}
+          tags: |
+            ghcr.io/danielpassy/monorepo-web:${{ github.sha }}
+            ghcr.io/danielpassy/monorepo-web:latest
+          push: true
+          cache-from: type=gha,scope=web
+
+  deploy:
+    needs: test
+    if: inputs.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+      - name: Write kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > ~/.kube/config
+      - name: Deploy web
+        run: |
+          kubectl apply -f apps/web/k8s/
+          kubectl set image deployment/web web=ghcr.io/danielpassy/monorepo-web:${{ github.sha }} -n monorepo
+          kubectl rollout status deployment/web -n monorepo --timeout=120s
