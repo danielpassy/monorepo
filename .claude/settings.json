@@ -3,7 +3,8 @@
     "deny": [
       "Read(infra/terraform.tfvars)",
       "Read(**/*.tfvars)",
-      "Read(infra/.env)"
+      "Read(infra/terraform/.env)",
+      "Read(**/.env)"
     ]
   }
 }
