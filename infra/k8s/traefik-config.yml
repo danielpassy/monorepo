@@ -10,8 +10,9 @@ spec:
       - --certificatesresolvers.letsencrypt.acme.storage=/data/acme.json
       - --certificatesresolvers.letsencrypt.acme.dnschallenge=true
       - --certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare
+      - --providers.kubernetescrd.allowExternalNameServices=true
     env:
-      - name: CF_API_TOKEN
+      - name: CLOUDFLARE_DNS_API_TOKEN
         valueFrom:
           secretKeyRef:
             name: cloudflare-api-token

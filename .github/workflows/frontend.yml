@@ -57,4 +57,5 @@ jobs:
         run: |
           aws s3 sync dist/ s3://monorepo-frontend/ \
             --endpoint-url https://hel1.your-objectstorage.com \
+            --acl public-read \
             --delete
