@@ -39,8 +39,7 @@ provider "hcloud" {
 }
 
 provider "aws" {
-  region = "hel1"
-
+  region     = "hel1"
   endpoints {
     s3 = "https://hel1.your-objectstorage.com"
   }

@@ -12,21 +12,89 @@ spec:
       ipStrategy:
         depth: 0
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
 metadata:
-  name: web
+  name: api
   namespace: monorepo
-  annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: monorepo-rate-limit@kubernetescrd
 spec:
-  rules:
-    - http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: web
-                port:
-                  number: 80
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`api.rafaellapontes.com.br`)
+      kind: Rule
+      middlewares:
+        - name: rate-limit
+      services:
+        - name: web
+          port: 80
+  tls:
+    certResolver: letsencrypt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-s3
+  namespace: monorepo
+spec:
+  type: ExternalName
+  externalName: hel1.your-objectstorage.com
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: frontend-index-redirect
+  namespace: monorepo
+spec:
+  replacePathRegex:
+    regex: ^/$
+    replacement: /index.html
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: frontend-path-prefix
+  namespace: monorepo
+spec:
+  addPrefix:
+    prefix: /monorepo-frontend
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: frontend-host-header
+  namespace: monorepo
+spec:
+  headers:
+    customRequestHeaders:
+      Host: hel1.your-objectstorage.com
+---
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: frontend-s3-transport
+  namespace: monorepo
+spec:
+  serverName: hel1.your-objectstorage.com
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: frontend
+  namespace: monorepo
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`app.rafaellapontes.com.br`)
+      kind: Rule
+      middlewares:
+        - name: frontend-index-redirect
+        - name: frontend-path-prefix
+        - name: frontend-host-header
+      services:
+        - name: frontend-s3
+          port: 443
+          serversTransport: frontend-s3-transport
+  tls:
+    certResolver: letsencrypt

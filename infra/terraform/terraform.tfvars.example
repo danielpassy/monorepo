@@ -1,0 +1,2 @@
+hcloud_token    = "your-hetzner-api-token"
+ssh_allowed_ips = ["YOUR_IP/32"]
