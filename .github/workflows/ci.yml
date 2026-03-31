@@ -17,6 +17,7 @@ jobs:
     outputs:
       web: ${{ steps.select.outputs.web }}
       worker: ${{ steps.select.outputs.worker }}
+      frontend: ${{ steps.select.outputs.frontend }}
       infra: ${{ steps.select.outputs.infra }}
     steps:
       - uses: actions/checkout@v5
@@ -54,6 +55,16 @@ jobs:
       event_name: ${{ github.event_name }}
     secrets:
       KUBECONFIG_B64: ${{ secrets.KUBECONFIG_B64 }}
+
+  frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    uses: ./.github/workflows/frontend.yml
+    with:
+      event_name: ${{ github.event_name }}
+    secrets:
+      S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+      S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
 
   infra:
     needs: changes

@@ -25,4 +25,7 @@ APPS = {
     "worker": {
         "paths": ["apps/worker/**"],
     },
+    "frontend": {
+        "paths": ["apps/frontend/**"],
+    },
 }

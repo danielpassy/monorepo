@@ -38,6 +38,7 @@ def compute_selection(changed_files: list[str]) -> dict[str, object]:
         "infra": run_all or infra_changed,
         "web": run_all or "web" in affected_apps,
         "worker": run_all or "worker" in affected_apps,
+        "frontend": run_all or "frontend" in affected_apps,
     }
 
 
@@ -47,6 +48,7 @@ def write_github_outputs(output_path: str, selection: dict[str, object]) -> None
         f"infra={str(selection['infra']).lower()}",
         f"web={str(selection['web']).lower()}",
         f"worker={str(selection['worker']).lower()}",
+        f"frontend={str(selection['frontend']).lower()}",
     ]
     Path(output_path).write_text("\n".join(output_lines) + "\n")
 
