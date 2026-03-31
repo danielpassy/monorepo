@@ -1,0 +1,56 @@
+name: Frontend
+
+on:
+  workflow_call:
+    inputs:
+      event_name:
+        required: true
+        type: string
+    secrets:
+      S3_ACCESS_KEY_ID:
+        required: false
+      S3_SECRET_ACCESS_KEY:
+        required: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/frontend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          cache: true
+      - name: Install dependencies
+        run: vp install
+      - name: Lint and type check
+        run: vp check
+      - name: Run tests
+        run: vp test
+      - name: Build
+        run: vp build
+
+  deploy:
+    needs: test
+    if: inputs.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: apps/frontend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          cache: true
+      - name: Install dependencies
+        run: vp install
+      - name: Build for production
+        run: vp build
+      - name: Deploy to S3 (placeholder)
+        run: |
+          echo "Built assets are in dist/"
+          echo "TODO: Upload to Hetzner Object Storage bucket"
+          echo "TODO: Invalidate CDN cache if using one"
