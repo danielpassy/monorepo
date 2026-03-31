@@ -14,7 +14,7 @@ on:
       S3_SECRET_ACCESS_KEY:
         required: true
       CI_SSH_PRIVATE_KEY:
-        required: false
+        required: true
 
 permissions:
   contents: read
@@ -46,12 +46,14 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v3
 
+      - name: Write SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.CI_SSH_PRIVATE_KEY }}" > ~/.ssh/monorepo_ci
+          chmod 600 ~/.ssh/monorepo_ci
+
       - name: Terraform Init
         run: terraform init
 
       - name: Terraform Apply
-        run: |
-          terraform apply -auto-approve -input=false \
-            -target=hcloud_firewall.cluster \
-            -target=aws_s3_bucket.frontend \
-            -target=aws_s3_bucket_acl.frontend
+        run: terraform apply -auto-approve -input=false
