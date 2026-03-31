@@ -1,31 +1,40 @@
 from __future__ import annotations
 
-RUN_ALL_PATHS = [
-    "docker-compose.yml",
-    ".python-version",
-    "pyproject.toml",
-]
-
 INFRA_PATHS = [
-    "docker-compose.yml",
-    "local/**",
     "infra/**",
+    ".github/workflows/infra.yml",
 ]
 
-CI_CONFIG_PATHS = [
-    ".github/workflows/**",
-    ".github/actions/**",
-    ".github/scripts/**",
+# Changes that affect all Python backend apps (web, worker)
+BACKEND_SHARED_PATHS = [
+    "pyproject.toml",
+    ".python-version",
+    "docker/base.Dockerfile",
+    "shared/**",
 ]
 
 APPS = {
     "web": {
-        "paths": ["apps/web/**"],
+        "paths": ["apps/web/**"] + BACKEND_SHARED_PATHS,
+        "ci_paths": [
+            ".github/workflows/web.yml",
+            ".github/actions/**",
+            ".github/scripts/**",
+        ],
     },
     "worker": {
-        "paths": ["apps/worker/**"],
+        "paths": ["apps/worker/**"] + BACKEND_SHARED_PATHS,
+        "ci_paths": [
+            ".github/workflows/worker.yml",
+            ".github/actions/**",
+            ".github/scripts/**",
+        ],
     },
     "frontend": {
         "paths": ["apps/frontend/**"],
+        "ci_paths": [
+            ".github/workflows/frontend.yml",
+            ".github/actions/**",
+        ],
     },
 }
