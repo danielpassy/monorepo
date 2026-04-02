@@ -18,3 +18,9 @@ spec:
       containers:
         - name: worker
           image: ghcr.io/danielpassy/monorepo-worker:latest
+          env:
+            - name: CELERY_BROKER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: redis-broker-secret
+                  key: url
