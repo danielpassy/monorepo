@@ -38,6 +38,11 @@ services:
       postgres:
         condition: service_healthy
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
   worker:
     image: monorepo-worker:dev
     build:
@@ -47,6 +52,7 @@ services:
         BASE_IMAGE: monorepo-python-base:dev
     environment:
       DATABASE_URL: postgresql://monorepo:monorepo@postgres:5432/worker_app
+      CELERY_BROKER_URL: redis://redis:6379/0
     depends_on:
       postgres:
         condition: service_healthy
