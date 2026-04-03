@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "transcription-extension-chrome",
+  "version": "0.1.0",
+  "description": "Capture meeting audio and save it for transcription verification.",
+  "permissions": [
+    "storage",
+    "downloads",
+    "tabCapture",
+    "offscreen",
+    "activeTab"
+  ],
+  "host_permissions": ["https://meet.google.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://meet.google.com/*"],
+      "js": ["content-google-meet.js"],
+      "run_at": "document_idle",
+      "world": "ISOLATED"
+    }
+  ],
+  "action": {
+    "default_title": "transcription-extension-chrome",
+    "default_popup": "popup.html"
+  },
+  "options_page": "meetings.html"
+}

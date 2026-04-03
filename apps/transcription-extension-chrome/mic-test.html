@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Teste de microfone</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 24px;
+        max-width: 720px;
+        line-height: 1.4;
+      }
+
+      button {
+        margin-right: 8px;
+        padding: 10px 14px;
+      }
+
+      pre {
+        margin-top: 16px;
+        background: #111;
+        color: #ddd;
+        padding: 12px;
+        min-height: 160px;
+        overflow: auto;
+      }
+
+      .hint {
+        margin: 12px 0;
+        padding: 12px;
+        border-radius: 8px;
+        background: #f6f6f6;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id="page-title">Teste de microfone</h1>
+    <p id="page-description">Use `Iniciar` para testar so o microfone. Use `Mic + compartilhar aba` para escolher uma aba pelo seletor do navegador e misturar o audio dela com o microfone.</p>
+    <div id="session-hint" class="hint" hidden></div>
+    <button id="start">Iniciar</button>
+    <button id="start-mixed">Mic + compartilhar aba</button>
+    <button id="stop" disabled>Parar</button>
+    <pre id="status">pronto</pre>
+    <script src="mic-test.js"></script>
+  </body>
+</html>
