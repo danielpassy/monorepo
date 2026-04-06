@@ -91,7 +91,7 @@ export function NotesEditor({ value, onChange }: NotesEditorProps) {
             variant="ghost"
             size="icon-sm"
             onClick={() => insertFormatting("**")}
-            title="Bold"
+            title="Negrito"
           >
             <Bold className="size-4" />
           </Button>
@@ -99,21 +99,21 @@ export function NotesEditor({ value, onChange }: NotesEditorProps) {
             variant="ghost"
             size="icon-sm"
             onClick={() => insertFormatting("_")}
-            title="Italic"
+            title="Itálico"
           >
             <Italic className="size-4" />
           </Button>
-          <Button variant="ghost" size="icon-sm" onClick={insertBullet} title="Bullet List">
+          <Button variant="ghost" size="icon-sm" onClick={insertBullet} title="Lista">
             <List className="size-4" />
           </Button>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           {isSaving ? (
-            <span>Saving...</span>
+            <span>Salvando...</span>
           ) : lastSaved ? (
             <span className="flex items-center gap-1">
               <Check className="size-3" />
-              Saved
+              Salvo
             </span>
           ) : null}
         </div>
@@ -130,7 +130,7 @@ export function NotesEditor({ value, onChange }: NotesEditorProps) {
             "placeholder:text-muted-foreground",
             "focus:outline-none",
           )}
-          placeholder="Enter your clinical notes here..."
+          placeholder="Digite suas notas clínicas aqui..."
         />
       </div>
     </div>

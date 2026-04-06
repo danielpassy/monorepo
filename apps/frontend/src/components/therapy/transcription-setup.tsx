@@ -67,14 +67,15 @@ export function TranscriptionSetup() {
           ) : (
             <MicOff className="size-4 text-muted-foreground" />
           )}
-          <span className="hidden sm:inline">Transcription</span>
+          <span className="hidden sm:inline">Transcrição</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Setup Transcription</DialogTitle>
+          <DialogTitle>Configurar Transcrição</DialogTitle>
           <DialogDescription>
-            Connect the TherapyNotes browser extension to enable real-time session transcription.
+            Conecte a extensão do navegador NotasTerapêuticas para habilitar a transcrição em tempo
+            real das sessões.
           </DialogDescription>
         </DialogHeader>
 
@@ -97,18 +98,18 @@ export function TranscriptionSetup() {
                   </div>
                 )}
                 <div>
-                  <p className="font-medium">Extension Status</p>
+                  <p className="font-medium">Status da Extensão</p>
                   <p className="text-sm text-muted-foreground">
                     {isChecking
-                      ? "Checking for extension..."
+                      ? "Verificando extensão..."
                       : extensionStatus === "active"
-                        ? "Connected and ready"
-                        : "Not detected"}
+                        ? "Conectada e pronta"
+                        : "Não detectada"}
                   </p>
                 </div>
               </div>
               <Button variant="ghost" size="sm" onClick={checkExtension} disabled={isChecking}>
-                {isChecking ? <Loader2 className="size-4 animate-spin" /> : "Refresh"}
+                {isChecking ? <Loader2 className="size-4 animate-spin" /> : "Atualizar"}
               </Button>
             </div>
           </div>
@@ -116,7 +117,7 @@ export function TranscriptionSetup() {
           {/* Installation Instructions */}
           {extensionStatus !== "active" && (
             <div className="space-y-4">
-              <h4 className="font-medium">Install the Extension</h4>
+              <h4 className="font-medium">Instalar a Extensão</h4>
               <div className="space-y-3">
                 <button
                   onClick={handleInstallClick}
@@ -126,7 +127,7 @@ export function TranscriptionSetup() {
                   <div className="flex-1">
                     <p className="font-medium">Chrome Web Store</p>
                     <p className="text-sm text-muted-foreground">
-                      For Chrome, Edge, Brave, and other Chromium browsers
+                      Para Chrome, Edge, Brave e outros navegadores Chromium
                     </p>
                   </div>
                   <ExternalLink className="size-4 text-muted-foreground" />
@@ -143,7 +144,9 @@ export function TranscriptionSetup() {
                   </svg>
                   <div className="flex-1">
                     <p className="font-medium">Firefox Add-ons</p>
-                    <p className="text-sm text-muted-foreground">For Mozilla Firefox browser</p>
+                    <p className="text-sm text-muted-foreground">
+                      Para o navegador Mozilla Firefox
+                    </p>
                   </div>
                   <ExternalLink className="size-4 text-muted-foreground" />
                 </button>
@@ -152,7 +155,7 @@ export function TranscriptionSetup() {
               {/* Demo: Simulate Extension Active */}
               <div className="border-t pt-4">
                 <p className="mb-2 text-xs text-muted-foreground">
-                  For demo purposes, click below to simulate an active extension:
+                  Para fins de demonstração, clique abaixo para simular uma extensão ativa:
                 </p>
                 <Button
                   variant="outline"
@@ -160,7 +163,7 @@ export function TranscriptionSetup() {
                   onClick={simulateExtensionActive}
                   className="w-full"
                 >
-                  Simulate Extension Active
+                  Simular Extensão Ativa
                 </Button>
               </div>
             </div>
@@ -170,18 +173,18 @@ export function TranscriptionSetup() {
           {extensionStatus === "active" && (
             <div className="space-y-4">
               <div className="rounded-lg bg-emerald-50 p-4 text-sm text-emerald-800">
-                <p className="font-medium">Ready to transcribe</p>
+                <p className="font-medium">Pronta para transcrever</p>
                 <p className="mt-1 text-emerald-700">
-                  Start a session to begin real-time transcription. The extension will automatically
-                  capture audio from your meeting or call.
+                  Inicie uma sessão para começar a transcrição em tempo real. A extensão irá
+                  capturar automaticamente o áudio da sua reunião ou chamada.
                 </p>
               </div>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p className="font-medium text-foreground">Supported platforms:</p>
+                <p className="font-medium text-foreground">Plataformas suportadas:</p>
                 <ul className="list-inside list-disc space-y-1">
                   <li>Zoom, Google Meet, Microsoft Teams</li>
-                  <li>In-person sessions via microphone</li>
-                  <li>Phone calls (with appropriate permissions)</li>
+                  <li>Sessões presenciais via microfone</li>
+                  <li>Chamadas telefônicas (com permissões adequadas)</li>
                 </ul>
               </div>
             </div>
