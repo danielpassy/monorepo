@@ -43,7 +43,7 @@ export function SessionSidebar({
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString("pt-BR", {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -84,12 +84,12 @@ export function SessionSidebar({
       <div className="flex h-full w-64 flex-col border-r bg-muted/30">
         <div className="flex items-center justify-between border-b p-4">
           <div>
-            <h2 className="text-sm font-semibold text-foreground">Sessions</h2>
+            <h2 className="text-sm font-semibold text-foreground">Sessões</h2>
             <p className="text-xs text-muted-foreground">
-              {sessions.length} session{sessions.length !== 1 ? "s" : ""} recorded
+              {sessions.length} {sessions.length !== 1 ? "sessões" : "sessão"} registradas
             </p>
           </div>
-          <Button variant="ghost" size="icon-sm" onClick={handleNewSession} title="New Session">
+          <Button variant="ghost" size="icon-sm" onClick={handleNewSession} title="Nova Sessão">
             <Plus className="size-4" />
           </Button>
         </div>
@@ -123,12 +123,12 @@ export function SessionSidebar({
                           isActive ? "text-foreground" : "text-muted-foreground",
                         )}
                       >
-                        Session #{session.sessionNumber}
+                        Sessão #{session.sessionNumber}
                       </span>
                       {isInProgress && (
                         <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                           <span className="size-1.5 animate-pulse rounded-full bg-primary" />
-                          Active
+                          Ativo
                         </span>
                       )}
                     </div>
@@ -173,7 +173,7 @@ export function SessionSidebar({
                           }}
                         >
                           <Trash2 className="size-4" />
-                          Delete Session
+                          Excluir Sessão
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -184,10 +184,10 @@ export function SessionSidebar({
 
             {sessions.length === 0 && (
               <div className="p-4 text-center text-sm text-muted-foreground">
-                <p>No sessions yet</p>
+                <p>Nenhuma sessão ainda</p>
                 <Button variant="outline" size="sm" className="mt-2" onClick={handleNewSession}>
                   <Plus className="mr-2 size-4" />
-                  Create First Session
+                  Criar Primeira Sessão
                 </Button>
               </div>
             )}
@@ -199,19 +199,19 @@ export function SessionSidebar({
       <AlertDialog open={!!sessionToDelete} onOpenChange={() => setSessionToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Session</AlertDialogTitle>
+            <AlertDialogTitle>Excluir Sessão</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete Session #{sessionToDelete?.sessionNumber}? This will
-              permanently remove all notes, transcripts, and summaries for this session.
+              Tem certeza que deseja excluir a Sessão #{sessionToDelete?.sessionNumber}? Isso irá
+              remover permanentemente todas as notas, transcrições e resumos desta sessão.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteSession}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

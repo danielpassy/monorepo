@@ -39,28 +39,28 @@ export default function HomePage() {
         <div className="mx-auto max-w-4xl">
           <div className="mb-6 flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Patients</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">Pacientes</h1>
               <p className="text-sm text-muted-foreground">
-                Select a patient to view their session history
+                Selecione um paciente para ver seu histórico de sessões
               </p>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="mr-2 size-4" />
-                  New Patient
+                  Novo Paciente
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Add New Patient</DialogTitle>
+                  <DialogTitle>Adicionar Novo Paciente</DialogTitle>
                   <DialogDescription>
-                    Enter the patient&apos;s name to create their profile.
+                    Digite o nome do paciente para criar o perfil.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
                   <Input
-                    placeholder="Patient name"
+                    placeholder="Nome do paciente"
                     value={newPatientName}
                     onChange={(e) => setNewPatientName(e.target.value)}
                     onKeyDown={(e) => {
@@ -71,10 +71,10 @@ export default function HomePage() {
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Cancel
+                    Cancelar
                   </Button>
                   <Button onClick={handleAddPatient} disabled={!newPatientName.trim()}>
-                    Add Patient
+                    Adicionar Paciente
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -109,7 +109,7 @@ export default function HomePage() {
                             to="/clients/$clientId/sessions/$sessionId"
                             params={{ clientId: client.id, sessionId: latestSession.id }}
                           >
-                            View Sessions
+                            Ver Sessões
                             <ChevronRight className="ml-1 size-4" />
                           </Link>
                         </Button>
@@ -126,7 +126,7 @@ export default function HomePage() {
                           }}
                         >
                           <Plus className="mr-1 size-4" />
-                          New Session
+                          Nova Sessão
                         </Button>
                       )}
                     </div>
@@ -135,12 +135,12 @@ export default function HomePage() {
                     <div className="flex items-center gap-6 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1.5">
                         <Users className="size-4" />
-                        {sessions.length} session{sessions.length !== 1 ? "s" : ""}
+                        {sessions.length} {sessions.length !== 1 ? "sessões" : "sessão"}
                       </span>
                       <span className="flex items-center gap-1.5">
                         <Calendar className="size-4" />
-                        Started{" "}
-                        {new Date(client.startDate).toLocaleDateString("en-US", {
+                        Iniciado em{" "}
+                        {new Date(client.startDate).toLocaleDateString("pt-BR", {
                           month: "short",
                           year: "numeric",
                         })}
@@ -158,7 +158,7 @@ export default function HomePage() {
                           className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
                         >
                           <span className="size-2 animate-pulse rounded-full bg-primary" />
-                          Active Session #{latestSession.sessionNumber}
+                          Sessão Ativa #{latestSession.sessionNumber}
                         </button>
                       </div>
                     )}
@@ -170,13 +170,13 @@ export default function HomePage() {
             {clients.length === 0 && (
               <div className="rounded-lg border border-dashed p-12 text-center">
                 <Users className="mx-auto size-12 text-muted-foreground/50" />
-                <h3 className="mt-4 text-lg font-medium">No patients yet</h3>
+                <h3 className="mt-4 text-lg font-medium">Nenhum paciente ainda</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Add your first patient to get started with session documentation.
+                  Adicione seu primeiro paciente para começar a documentar as sessões.
                 </p>
                 <Button className="mt-4" onClick={() => setIsDialogOpen(true)}>
                   <Plus className="mr-2 size-4" />
-                  Add Patient
+                  Adicionar Paciente
                 </Button>
               </div>
             )}
