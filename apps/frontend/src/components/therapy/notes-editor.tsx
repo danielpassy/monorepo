@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Bold, Italic, List, Check } from "lucide-react";

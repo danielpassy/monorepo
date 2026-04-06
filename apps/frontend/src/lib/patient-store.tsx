@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 import type { Client, Session } from "./types/therapy";
 import { mockClients, mockSessions } from "./mock-data";

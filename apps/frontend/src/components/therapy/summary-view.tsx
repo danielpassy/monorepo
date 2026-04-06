@@ -1,5 +1,3 @@
-
-
 import { useState } from "react";
 import type { TranscriptEntry } from "@/lib/types/therapy";
 import { Button } from "@/components/ui/button";

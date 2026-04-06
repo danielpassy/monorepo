@@ -1,5 +1,3 @@
-
-
 import { useState, useCallback } from "react";
 import type { DocumentType, Session } from "@/lib/types/therapy";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";

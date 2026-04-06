@@ -1,5 +1,3 @@
-
-
 import type { DocumentType, SessionDocuments, TranscriptEntry } from "@/lib/types/therapy";
 import {
   Select,
