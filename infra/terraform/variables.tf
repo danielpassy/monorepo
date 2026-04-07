@@ -20,4 +20,3 @@ variable "ssh_allowed_ips" {
   description = "List of IPs allowed to SSH (CIDR notation)"
   type        = list(string)
 }
-

@@ -4,6 +4,9 @@ import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
+  staged: {
+    "*": "vp check --fix",
+  },
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {

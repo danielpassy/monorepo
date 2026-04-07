@@ -14,7 +14,7 @@ Target: minimal cost, simple operations, good enough for production-light worklo
 
 Total compute: ~€9/mo.
 
-**Node 1 (server):** k3s control plane + Traefik ingress + web app + SQLite. 
+**Node 1 (server):** k3s control plane + Traefik ingress + web app + SQLite.
 
 **Node 2 (agent):** k3s agent + worker app.
 

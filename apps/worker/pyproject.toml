@@ -13,6 +13,7 @@ dependencies = [
 dev = [
     "taskipy>=1.14.1",
     "pytest>=8.4.0",
+    "ruff>=0.15.9",
 ]
 
 [tool.taskipy.tasks]
