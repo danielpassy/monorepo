@@ -2,7 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <title>transcription-extension-chrome</title>
+    <title>Meet Session Capture</title>
     <style>
       body {
         font-family: sans-serif;
@@ -14,53 +14,29 @@
       button {
         display: block;
         width: 100%;
-        margin: 8px 0;
+        margin: 8px 0 0;
         padding: 10px 12px;
       }
 
       .panel {
         margin-bottom: 12px;
-        padding: 10px;
+        padding: 12px;
         border: 1px solid #d6d6d6;
         border-radius: 8px;
         background: #f8f8f8;
       }
 
-      .label {
-        font-size: 12px;
-        color: #666;
-        margin-bottom: 4px;
-      }
-
-      .value {
-        font-size: 13px;
-        word-break: break-word;
-      }
-
       .warning {
-        margin-top: 8px;
-        font-size: 12px;
-        color: #8a5b00;
-      }
-
-      .secondary {
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid #e5e5e5;
+        font-size: 13px;
+        color: #5f4a1a;
       }
     </style>
   </head>
   <body>
     <div class="panel">
-      <div class="label">Aba ativa</div>
-      <div id="active-tab-title" class="value">carregando...</div>
-      <div id="active-tab-url" class="value"></div>
       <div id="tab-warning" class="warning"></div>
     </div>
     <button id="start-session">Iniciar captura da sessao</button>
-    <div class="secondary">
-      <button id="open-mic-page">Abrir teste de mic</button>
-    </div>
     <script src="popup.js"></script>
   </body>
 </html>

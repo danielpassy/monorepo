@@ -4,7 +4,11 @@ let streamId = null;
 let activeStreams = [];
 let stopReason = "manual";
 let stopRequested = false;
-const backendUrl = "http://127.0.0.1:8000";
+let lastErrorMessage = "";
+let sourceTabWatchTimer = null;
+
+const backendUrl = "https://api.rafaellapontes.com.br";
+const helpChannelBaseUrl = "mailto:suporte@rafaellapontes.com.br";
 const params = new URLSearchParams(window.location.search);
 const pageMode = params.get("mode") ?? "debug";
 const autostart = params.get("autostart") === "1";
@@ -14,15 +18,42 @@ const sourceTabId = params.get("sourceTabId");
 const statusEl = document.getElementById("status");
 const pageTitle = document.getElementById("page-title");
 const pageDescription = document.getElementById("page-description");
-const sessionHint = document.getElementById("session-hint");
-const startButton = document.getElementById("start");
-const startMixedButton = document.getElementById("start-mixed");
+const sessionMeta = document.getElementById("session-meta");
+const sessionMetaText = document.getElementById("session-meta-text");
+const sessionWarning = document.getElementById("session-warning");
+const retryButton = document.getElementById("retry");
 const stopButton = document.getElementById("stop");
+const helpLink = document.getElementById("help-link");
 
 function log(message, data) {
   const line = data ? `${message} ${JSON.stringify(data)}` : message;
   console.log(line);
   statusEl.textContent += `\n${line}`;
+}
+
+function updateHelpLink() {
+  const subject = encodeURIComponent("Ajuda com captura da sessao");
+  const body = encodeURIComponent(
+    [
+      "Oi, preciso de ajuda com a captura da sessao.",
+      "",
+      `Sessao esperada: ${sourceTitle}`,
+      `Modo da pagina: ${pageMode}`,
+      streamId ? `Stream ID: ${streamId}` : "Stream ID: ainda nao iniciado",
+      lastErrorMessage ? `Ultimo erro: ${lastErrorMessage}` : "Ultimo erro: nenhum",
+    ].join("\n"),
+  );
+  helpLink.href = `${helpChannelBaseUrl}?subject=${subject}&body=${body}`;
+}
+
+function showWarning(message) {
+  sessionWarning.hidden = false;
+  sessionWarning.textContent = message;
+}
+
+function clearWarning() {
+  sessionWarning.hidden = true;
+  sessionWarning.textContent = "";
 }
 
 function tryCloseWindow() {
@@ -34,18 +65,56 @@ function tryCloseWindow() {
   }, 150);
 }
 
-function setSessionModeUi() {
-  if (pageMode !== "session") {
+function stopSourceTabWatch() {
+  if (sourceTabWatchTimer) {
+    clearInterval(sourceTabWatchTimer);
+    sourceTabWatchTimer = null;
+  }
+}
+
+function startSourceTabWatch() {
+  if (pageMode !== "session" || !sourceTabId || sourceTabWatchTimer) {
     return;
   }
 
-  pageTitle.textContent = "Captura da sessao";
+  sourceTabWatchTimer = setInterval(async () => {
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: "session:check-source-tab",
+        target: "background",
+        tabId: sourceTabId,
+      });
+
+      if (response?.ok && response.exists === false) {
+        log("aba da sessao foi fechada", { tabId: sourceTabId });
+        stopSourceTabWatch();
+        stopCapture("source-tab-closed");
+      }
+    } catch (error) {
+      log("falha ao verificar aba da sessao", {
+        name: error?.name,
+        message: error?.message,
+      });
+    }
+  }, 1000);
+}
+
+function setSessionModeUi() {
+  if (pageMode !== "session") {
+    pageTitle.textContent = "Teste de captura";
+    pageDescription.textContent =
+      "Use esta pagina apenas para testar a captura. Para uso real, abra a partir do Google Meet.";
+    retryButton.hidden = false;
+    retryButton.textContent = "Iniciar captura";
+    return;
+  }
+
+  pageTitle.textContent = "Preparando a captura da sessao";
   pageDescription.textContent =
-    "Esta pagina tenta iniciar a captura automaticamente. No seletor do navegador, escolha a aba da sessao e marque compartilhar audio.";
-  sessionHint.hidden = false;
-  sessionHint.textContent = `Aba esperada: ${sourceTitle}`;
-  startButton.hidden = true;
-  startMixedButton.textContent = "Continuar captura da sessao";
+    "Quando o seletor do navegador abrir, escolha a aba desta sessao e habilite o compartilhamento de audio.";
+  sessionMeta.hidden = false;
+  sessionMetaText.textContent = sourceTitle;
+  retryButton.hidden = true;
 }
 
 async function buildCaptureStream(mode) {
@@ -78,9 +147,8 @@ async function buildCaptureStream(mode) {
     });
     streams.push(tabStream);
 
-    const hasAudioTrack = tabStream.getAudioTracks().length > 0;
-    if (!hasAudioTrack) {
-      throw new Error("a aba compartilhada nao trouxe audio");
+    if (tabStream.getAudioTracks().length === 0) {
+      throw new Error("A aba compartilhada foi iniciada sem audio.");
     }
 
     for (const track of tabStream.getTracks()) {
@@ -92,7 +160,7 @@ async function buildCaptureStream(mode) {
 
     const tabSource = audioContext.createMediaStreamSource(tabStream);
     tabSource.connect(destination);
-    log("audio da aba conectado pelo compartilhamento do navegador");
+    log("audio da aba conectado");
 
     if (pageMode === "session" && sourceTabId) {
       await chrome.runtime.sendMessage({
@@ -121,6 +189,7 @@ async function uploadRecording(blob) {
 }
 
 async function cleanupCapture(audioContext) {
+  stopSourceTabWatch();
   for (const stream of activeStreams) {
     for (const track of stream.getTracks()) {
       track.stop();
@@ -130,10 +199,17 @@ async function cleanupCapture(audioContext) {
   await audioContext.close();
 }
 
-function resetButtons() {
-  startButton.disabled = pageMode === "session";
-  startMixedButton.disabled = false;
+function resetActions() {
+  retryButton.hidden = pageMode === "session";
+  retryButton.disabled = false;
+  stopButton.hidden = true;
   stopButton.disabled = true;
+}
+
+function setRecordingActions() {
+  retryButton.hidden = true;
+  stopButton.hidden = false;
+  stopButton.disabled = false;
 }
 
 function stopCapture(reason = "manual") {
@@ -144,7 +220,7 @@ function stopCapture(reason = "manual") {
   stopRequested = true;
   stopReason = reason;
   mediaRecorder.stop();
-  resetButtons();
+  resetActions();
   log("gravacao parada", { reason });
 }
 
@@ -154,8 +230,11 @@ async function startCapture(mode) {
       return;
     }
 
+    clearWarning();
     streamId = crypto.randomUUID();
-    log("abrindo captura", { streamId, mode });
+    lastErrorMessage = "";
+    updateHelpLink();
+    log("abrindo captura", { streamId, mode, sourceTitle });
 
     const { stream, audioContext } = await buildCaptureStream(mode);
 
@@ -178,37 +257,35 @@ async function startCapture(mode) {
       const blob = new Blob(chunks, { type: "audio/webm;codecs=opus" });
       await uploadRecording(blob);
       mediaRecorder = null;
+      resetActions();
 
-      if (pageMode === "session" && stopReason === "share-ended") {
+      if (pageMode === "session" && ["share-ended", "source-tab-closed"].includes(stopReason)) {
         tryCloseWindow();
       }
     };
 
     mediaRecorder.start(1000);
-    startButton.disabled = true;
-    startMixedButton.disabled = true;
-    stopButton.disabled = false;
+    startSourceTabWatch();
+    setRecordingActions();
     log("gravacao iniciada", { mode });
   } catch (error) {
+    lastErrorMessage = error?.message ?? "erro inesperado";
+    updateHelpLink();
     log("falha ao iniciar", {
       name: error?.name,
       message: error?.message,
     });
 
-    if (pageMode === "session") {
-      sessionHint.hidden = false;
-      sessionHint.textContent =
-        "O navegador bloqueou o inicio automatico. Clique em 'Continuar captura da sessao' e escolha a aba do Meet com audio.";
-    }
+    showWarning(
+      "Nao foi possivel iniciar automaticamente. Clique em “Continuar captura”, escolha a aba correta no navegador e habilite o compartilhamento de audio.",
+    );
+    retryButton.hidden = false;
+    retryButton.textContent = pageMode === "session" ? "Continuar captura" : "Tentar novamente";
   }
 }
 
-startButton.addEventListener("click", async () => {
-  await startCapture("mic");
-});
-
-startMixedButton.addEventListener("click", async () => {
-  await startCapture("mixed");
+retryButton.addEventListener("click", async () => {
+  await startCapture(pageMode === "session" ? "mixed" : "mic");
 });
 
 stopButton.addEventListener("click", () => {
@@ -216,6 +293,8 @@ stopButton.addEventListener("click", () => {
 });
 
 setSessionModeUi();
+updateHelpLink();
+resetActions();
 
 if (pageMode === "session" && autostart) {
   void startCapture("mixed");

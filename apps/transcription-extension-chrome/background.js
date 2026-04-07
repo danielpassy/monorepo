@@ -1,14 +1,4 @@
-let recording = false;
-let recorderTabId = null;
-let recordingMode = "tab";
-const backendUrl = "http://127.0.0.1:8000";
-const patientId = "patient-dev-1";
-
 console.log("extensao de audio carregada");
-
-chrome.action.onClicked.addListener(async (tab) => {
-  if (recording) await stopRecording();
-});
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.target !== "background") return;
@@ -42,23 +32,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return;
     }
 
-    if (message.type === "recording:start-mic") {
-      const tab = message.tabId ? await chrome.tabs.get(message.tabId) : sender?.tab ?? null;
-      await startRecording(tab, "mic");
-      sendResponse?.({ ok: true });
-      return;
-    }
+    if (message.type === "session:check-source-tab") {
+      const tabId = Number(message.tabId);
+      if (!Number.isFinite(tabId)) {
+        throw new Error("tabId invalido");
+      }
 
-    if (message.type === "recording:start-tab") {
-      const tab = message.tabId ? await chrome.tabs.get(message.tabId) : sender?.tab ?? null;
-      await startRecording(tab, "tab");
-      sendResponse?.({ ok: true });
+      try {
+        await chrome.tabs.get(tabId);
+        sendResponse?.({ ok: true, exists: true });
+      } catch {
+        sendResponse?.({ ok: true, exists: false });
+      }
       return;
-    }
-
-    if (message.type === "recording:stop") {
-      await stopRecording();
-      sendResponse?.({ ok: true });
     }
   })().catch((error) => {
     console.error("erro no listener de mensagem", error);
@@ -67,70 +53,3 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   return true;
 });
-
-async function startRecording(tab, mode) {
-  if (!tab?.id) {
-    throw new Error("aba ativa nao encontrada");
-  }
-
-  if (
-    mode === "tab" &&
-    (!tab.url ||
-      tab.url.startsWith("chrome://") ||
-      tab.url.startsWith("chrome-extension://") ||
-      tab.url.startsWith("edge://") ||
-      tab.url.startsWith("about:"))
-  ) {
-    throw new Error("capture de aba so funciona em paginas normais");
-  }
-
-  const offscreenDocument = await ensureOffscreenDocument();
-  const streamId =
-    mode === "mic"
-      ? crypto.randomUUID()
-      : await chrome.tabCapture.getMediaStreamId({
-          targetTabId: tab.id,
-        });
-
-  recorderTabId = tab.id;
-  recording = true;
-  recordingMode = mode;
-  console.log("captura iniciada", { tabId: tab.id, title: tab.title });
-
-  chrome.runtime.sendMessage({
-    type: "recording:start",
-    target: "offscreen",
-    data: {
-      streamId,
-      tabTitle: tab.title ?? "meet",
-      backendUrl,
-      patientId,
-      mode,
-    },
-  });
-}
-
-async function stopRecording() {
-  recording = false;
-  recorderTabId = null;
-  recordingMode = "tab";
-  console.log("captura parada");
-  chrome.runtime.sendMessage({
-    type: "recording:stop",
-    target: "offscreen",
-  });
-}
-
-async function ensureOffscreenDocument() {
-  const contexts = await chrome.runtime.getContexts({});
-  const existing = contexts.find((c) => c.contextType === "OFFSCREEN_DOCUMENT");
-  if (existing) return existing;
-
-  await chrome.offscreen.createDocument({
-    url: "offscreen.html",
-    reasons: ["USER_MEDIA"],
-    justification: "Record tab audio using chrome.tabCapture",
-  });
-
-  return null;
-}

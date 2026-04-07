@@ -2,45 +2,451 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <title>Teste de microfone</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Captura de sessao</title>
     <style>
-      body {
-        font-family: sans-serif;
-        margin: 24px;
-        max-width: 720px;
-        line-height: 1.4;
+      :root {
+        color-scheme: light;
+        --bg: #f3efe8;
+        --panel: #fffaf2;
+        --ink: #1f1b16;
+        --muted: #62584c;
+        --line: rgba(31, 27, 22, 0.12);
+        --accent: #176a52;
+        --accent-strong: #0f5844;
+        --warn-bg: #fff1db;
+        --warn-ink: #6d4c12;
+        --debug-bg: #161616;
+        --debug-ink: #ebe7dd;
       }
 
-      button {
-        margin-right: 8px;
-        padding: 10px 14px;
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(23, 106, 82, 0.12), transparent 30%),
+          linear-gradient(180deg, #f6f1ea 0%, var(--bg) 100%);
+        color: var(--ink);
+      }
+
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 40px 20px 56px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 28px;
+        box-shadow: 0 16px 48px rgba(31, 27, 22, 0.08);
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: 2rem;
+        line-height: 1.1;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .steps {
+        margin: 24px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 12px;
+      }
+
+      .steps li {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.66);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+      }
+
+      .step-header {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+
+      .step-index {
+        flex: 0 0 auto;
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+      }
+
+      .step-copy {
+        color: var(--ink);
+      }
+
+      .step-visual {
+        position: relative;
+        overflow: hidden;
+        min-height: 156px;
+        border-radius: 16px;
+        border: 1px solid rgba(31, 27, 22, 0.08);
+        background: linear-gradient(180deg, #f8f5ee 0%, #efe8db 100%);
+      }
+
+      .browser-bar {
+        height: 18px;
+        background: rgba(31, 27, 22, 0.08);
+      }
+
+      .dialog-card {
+        position: absolute;
+        inset: 18px 22px 18px;
+        background: #fff;
+        border-radius: 18px;
+        border: 1px solid rgba(31, 27, 22, 0.08);
+        box-shadow: 0 16px 32px rgba(31, 27, 22, 0.08);
+        padding: 16px;
+      }
+
+      .dialog-title {
+        width: 58%;
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(31, 27, 22, 0.14);
+      }
+
+      .tab-choice {
+        margin-top: 14px;
+        height: 58px;
+        border-radius: 14px;
+        border: 2px solid rgba(23, 106, 82, 0.28);
+        background: rgba(23, 106, 82, 0.08);
+        padding: 10px 12px;
+      }
+
+      .tab-choice::before,
+      .tab-choice::after,
+      .audio-row::before,
+      .audio-row::after,
+      .meet-preview::before,
+      .meet-preview::after,
+      .share-banner::before,
+      .share-banner::after {
+        content: "";
+        display: block;
+      }
+
+      .tab-choice::before {
+        width: 44%;
+        height: 9px;
+        border-radius: 999px;
+        background: rgba(23, 106, 82, 0.45);
+      }
+
+      .tab-choice::after {
+        margin-top: 8px;
+        width: 72%;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(31, 27, 22, 0.12);
+      }
+
+      .audio-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 14px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(31, 27, 22, 0.04);
+      }
+
+      .audio-row::before {
+        width: 38%;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(31, 27, 22, 0.16);
+      }
+
+      .audio-row::after {
+        width: 34px;
+        height: 20px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #b9dcca 0%, #176a52 100%);
+      }
+
+      .confirm-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .ghost-button,
+      .solid-button {
+        width: 74px;
+        height: 26px;
+        border-radius: 999px;
+      }
+
+      .ghost-button {
+        background: rgba(31, 27, 22, 0.08);
+      }
+
+      .solid-button {
+        background: #176a52;
+      }
+
+      .share-banner {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        top: 18px;
+        height: 30px;
+        border-radius: 999px;
+        background: rgba(106, 76, 18, 0.12);
+        border: 1px solid rgba(106, 76, 18, 0.12);
+      }
+
+      .share-banner::before {
+        margin: 8px 12px;
+        width: 46%;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(106, 76, 18, 0.28);
+      }
+
+      .share-banner::after {
+        position: absolute;
+        right: 12px;
+        top: 6px;
+        width: 82px;
+        height: 16px;
+        border-radius: 999px;
+        background: rgba(23, 106, 82, 0.72);
+      }
+
+      .meet-preview {
+        position: absolute;
+        inset: 58px 18px 18px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, #202124 0%, #141414 100%);
+        overflow: hidden;
+      }
+
+      .meet-preview::before {
+        position: absolute;
+        inset: 18px 18px 42px;
+        border-radius: 16px;
+        background: radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.35), transparent 20%),
+          linear-gradient(135deg, #c2c2c2 0%, #f4f4f4 44%, #d8d8d8 100%);
+      }
+
+      .meet-preview::after {
+        position: absolute;
+        left: 50%;
+        bottom: 14px;
+        width: 150px;
+        height: 16px;
+        border-radius: 999px;
+        transform: translateX(-50%);
+        background: rgba(255, 255, 255, 0.16);
+      }
+
+      .caption {
+        margin-top: 8px;
+        font-size: 0.92rem;
+        color: var(--muted);
+      }
+
+      .meta {
+        margin-top: 20px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: rgba(23, 106, 82, 0.08);
+        border: 1px solid rgba(23, 106, 82, 0.18);
+      }
+
+      .meta strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .warning {
+        margin-top: 18px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: var(--warn-bg);
+        border: 1px solid rgba(109, 76, 18, 0.18);
+        color: var(--warn-ink);
+      }
+
+      .actions {
+        margin-top: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      button,
+      a.action-link {
+        appearance: none;
+        border: 0;
+        border-radius: 14px;
+        padding: 12px 16px;
+        font: inherit;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      button.primary {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      button.primary:hover {
+        background: var(--accent-strong);
+      }
+
+      button.secondary,
+      a.action-link {
+        background: transparent;
+        color: var(--accent-strong);
+        border: 1px solid rgba(23, 106, 82, 0.24);
+      }
+
+      button[hidden],
+      a[hidden] {
+        display: none;
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      details {
+        margin-top: 24px;
+        border-top: 1px solid var(--line);
+        padding-top: 18px;
+      }
+
+      summary {
+        cursor: pointer;
+        color: var(--muted);
       }
 
       pre {
-        margin-top: 16px;
-        background: #111;
-        color: #ddd;
-        padding: 12px;
+        margin: 14px 0 0;
+        background: var(--debug-bg);
+        color: var(--debug-ink);
+        border-radius: 16px;
+        padding: 16px;
         min-height: 160px;
         overflow: auto;
-      }
-
-      .hint {
-        margin: 12px 0;
-        padding: 12px;
-        border-radius: 8px;
-        background: #f6f6f6;
+        white-space: pre-wrap;
+        word-break: break-word;
       }
     </style>
   </head>
   <body>
-    <h1 id="page-title">Teste de microfone</h1>
-    <p id="page-description">Use `Iniciar` para testar so o microfone. Use `Mic + compartilhar aba` para escolher uma aba pelo seletor do navegador e misturar o audio dela com o microfone.</p>
-    <div id="session-hint" class="hint" hidden></div>
-    <button id="start">Iniciar</button>
-    <button id="start-mixed">Mic + compartilhar aba</button>
-    <button id="stop" disabled>Parar</button>
-    <pre id="status">pronto</pre>
+    <main>
+      <section class="card">
+        <h1 id="page-title">Captura da sessao</h1>
+        <p id="page-description">
+          Estamos preparando a captura desta sessao. O navegador vai abrir o seletor de compartilhamento.
+        </p>
+
+        <ol id="steps" class="steps">
+          <li>
+            <div class="step-header">
+              <span class="step-index">1</span>
+              <div class="step-copy">No seletor do navegador, escolha a aba desta sessao.</div>
+            </div>
+            <div class="step-visual" aria-hidden="true">
+              <div class="browser-bar"></div>
+              <div class="dialog-card">
+                <div class="dialog-title"></div>
+                <div class="tab-choice"></div>
+                <div class="confirm-row">
+                  <div class="ghost-button"></div>
+                  <div class="solid-button"></div>
+                </div>
+              </div>
+            </div>
+            <div class="caption">Procure pela aba do Meet e selecione exatamente essa sessao.</div>
+          </li>
+          <li>
+            <div class="step-header">
+              <span class="step-index">2</span>
+              <div class="step-copy">Marque a opcao de compartilhar audio da aba.</div>
+            </div>
+            <div class="step-visual" aria-hidden="true">
+              <div class="browser-bar"></div>
+              <div class="dialog-card">
+                <div class="dialog-title"></div>
+                <div class="tab-choice"></div>
+                <div class="audio-row"></div>
+                <div class="confirm-row">
+                  <div class="ghost-button"></div>
+                  <div class="solid-button"></div>
+                </div>
+              </div>
+            </div>
+            <div class="caption">Sem essa opcao, a captura pode iniciar sem o audio da chamada.</div>
+          </li>
+          <li>
+            <div class="step-header">
+              <span class="step-index">3</span>
+              <div class="step-copy">Confirme o compartilhamento e volte para o Meet normalmente.</div>
+            </div>
+            <div class="step-visual" aria-hidden="true">
+              <div class="share-banner"></div>
+              <div class="meet-preview"></div>
+            </div>
+            <div class="caption">Depois da confirmacao, voce pode seguir a chamada normalmente no Meet.</div>
+          </li>
+        </ol>
+
+        <div id="session-meta" class="meta" hidden>
+          <strong>Sessao esperada</strong>
+          <span id="session-meta-text"></span>
+        </div>
+
+        <div id="session-warning" class="warning" hidden></div>
+
+        <div class="actions">
+          <button id="retry" class="primary" hidden>Continuar captura</button>
+          <button id="stop" class="secondary" hidden>Encerrar captura</button>
+          <a id="help-link" class="action-link" href="#" target="_blank" rel="noreferrer">
+            Preciso de ajuda
+          </a>
+        </div>
+
+        <details>
+          <summary>Detalhes tecnicos</summary>
+          <pre id="status">pronto</pre>
+        </details>
+      </section>
+    </main>
     <script src="mic-test.js"></script>
   </body>
 </html>

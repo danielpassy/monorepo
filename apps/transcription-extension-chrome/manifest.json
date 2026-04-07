@@ -1,16 +1,19 @@
 {
   "manifest_version": 3,
-  "name": "transcription-extension-chrome",
+  "name": "Meet Session Capture",
   "version": "0.1.0",
-  "description": "Capture meeting audio and save it for transcription verification.",
-  "permissions": [
-    "storage",
-    "downloads",
-    "tabCapture",
-    "offscreen",
-    "activeTab"
+  "description": "Capture Google Meet session audio and upload it to your connected backend.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": ["activeTab"],
+  "host_permissions": [
+    "https://meet.google.com/*",
+    "https://api.rafaellapontes.com.br/*"
   ],
-  "host_permissions": ["https://meet.google.com/*"],
   "background": {
     "service_worker": "background.js"
   },
@@ -23,8 +26,11 @@
     }
   ],
   "action": {
-    "default_title": "transcription-extension-chrome",
+    "default_title": "Meet Session Capture",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    },
     "default_popup": "popup.html"
-  },
-  "options_page": "meetings.html"
+  }
 }
