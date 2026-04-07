@@ -9,11 +9,11 @@ export function AppHeader() {
     <header className="flex h-14 items-center justify-between border-b bg-background px-6">
       <div className="flex items-center gap-8">
         <Link to="/" className="text-lg font-semibold tracking-tight">
-          TherapyNotes
+          NotasTerapêuticas
         </Link>
         <nav className="flex items-center gap-1">
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/">Patients</Link>
+            <Link to="/">Pacientes</Link>
           </Button>
         </nav>
       </div>

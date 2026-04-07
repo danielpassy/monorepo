@@ -11,7 +11,7 @@ interface ClientHeaderProps {
 export function ClientHeader({ client, session }: ClientHeaderProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString("pt-BR", {
       month: "long",
       day: "numeric",
       year: "numeric",
@@ -22,7 +22,7 @@ export function ClientHeader({ client, session }: ClientHeaderProps) {
     <div className="border-b bg-background px-6 py-4">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link to="/" className="hover:text-foreground">
-          Patients
+          Pacientes
         </Link>
         <span>/</span>
         <Link
@@ -44,7 +44,7 @@ export function ClientHeader({ client, session }: ClientHeaderProps) {
             </span>
             <span className="flex items-center gap-1.5">
               <Hash className="size-4" />
-              Session {session.sessionNumber}
+              Sessão {session.sessionNumber}
             </span>
           </div>
         </div>
@@ -53,7 +53,7 @@ export function ClientHeader({ client, session }: ClientHeaderProps) {
           {session.status === "in-progress" && (
             <div className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-sm">
               <Radio className={cn("size-4 text-primary", "animate-pulse")} />
-              <span className="font-medium text-primary">Active Session</span>
+              <span className="font-medium text-primary">Sessão Ativa</span>
             </div>
           )}
         </div>

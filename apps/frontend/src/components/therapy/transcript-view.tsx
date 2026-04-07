@@ -11,9 +11,9 @@ export function TranscriptView({ entries }: TranscriptViewProps) {
     return (
       <div className="flex h-full items-center justify-center p-8">
         <div className="text-center">
-          <p className="text-muted-foreground">No transcript available for this session.</p>
+          <p className="text-muted-foreground">Nenhuma transcrição disponível para esta sessão.</p>
           <p className="mt-1 text-sm text-muted-foreground/70">
-            Transcripts are automatically generated during active sessions.
+            As transcrições são geradas automaticamente durante sessões ativas.
           </p>
         </div>
       </div>

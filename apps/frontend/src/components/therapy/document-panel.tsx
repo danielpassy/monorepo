@@ -21,9 +21,9 @@ interface DocumentPanelProps {
 }
 
 const documentLabels: Record<DocumentType, { label: string; icon: React.ReactNode }> = {
-  transcript: { label: "Transcript", icon: <MessageSquare className="size-4" /> },
-  notes: { label: "Clinical Notes", icon: <FileText className="size-4" /> },
-  summary: { label: "Session Summary", icon: <Sparkles className="size-4" /> },
+  transcript: { label: "Transcrição", icon: <MessageSquare className="size-4" /> },
+  notes: { label: "Notas Clínicas", icon: <FileText className="size-4" /> },
+  summary: { label: "Resumo da Sessão", icon: <Sparkles className="size-4" /> },
 };
 
 export function DocumentPanel({
@@ -48,19 +48,19 @@ export function DocumentPanel({
             <SelectItem value="transcript">
               <div className="flex items-center gap-2">
                 <MessageSquare className="size-4" />
-                Transcript
+                Transcrição
               </div>
             </SelectItem>
             <SelectItem value="notes">
               <div className="flex items-center gap-2">
                 <FileText className="size-4" />
-                Clinical Notes
+                Notas Clínicas
               </div>
             </SelectItem>
             <SelectItem value="summary">
               <div className="flex items-center gap-2">
                 <Sparkles className="size-4" />
-                Session Summary
+                Resumo da Sessão
               </div>
             </SelectItem>
           </SelectContent>
