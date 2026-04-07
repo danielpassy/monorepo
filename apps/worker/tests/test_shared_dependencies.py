@@ -36,7 +36,9 @@ def test_worker_declares_dependencies_for_shared_packages() -> None:
         if not shared_pyproject.is_file():
             continue
 
-        shared_dependencies = tomllib.loads(shared_pyproject.read_text())["project"]["dependencies"]
+        shared_dependencies = tomllib.loads(shared_pyproject.read_text())["project"][
+            "dependencies"
+        ]
         missing_dependencies = sorted(
             _normalize_dependency_name(requirement)
             for requirement in shared_dependencies
