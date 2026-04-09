@@ -18,7 +18,7 @@ spec:
       initContainers:
         - name: migrate
           image: ghcr.io/danielpassy/monorepo-web:latest
-          command: ["uv", "run", "alembic", "upgrade", "head"]
+          command: ["uv", "run", "alembic", "-c", "web/migrations/alembic.ini", "upgrade", "head"]
           env:
             - name: DATABASE_URL
               valueFrom:
