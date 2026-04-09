@@ -9,6 +9,7 @@ ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 class WorkerSettings(BaseSettings):
     app_name: str = "worker-app"
     celery_broker_url: str = "redis://localhost:6379/0"
+    database_url: str = "postgresql://monorepo:monorepo@localhost:5432/monorepo"
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

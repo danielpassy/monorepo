@@ -1,13 +1,19 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
 from web._shared.logging import format_log_line
+from web.auth.oauth import configure_google_oauth
+from web.middleware.auth import AuthMiddleware
 from web.settings import get_settings
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    configure_google_oauth()
     app = FastAPI(title=settings.app_name)
+    app.add_middleware(AuthMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(settings.cors_allow_origins),
@@ -16,6 +22,21 @@ def create_app() -> FastAPI:
         allow_methods=list(settings.cors_allow_methods),
         allow_headers=list(settings.cors_allow_headers),
     )
+
+    @app.exception_handler(ValidationError)
+    async def validation_error_handler(
+        request: Request, exc: ValidationError
+    ) -> JSONResponse:
+        return JSONResponse(status_code=400, content={"detail": exc.errors()})
+
+    @app.exception_handler(Exception)
+    async def unhandled_exception_handler(
+        request: Request, exc: Exception
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=500, content={"detail": "internal server error"}
+        )
+
     return app
 
 

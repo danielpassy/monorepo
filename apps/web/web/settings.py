@@ -12,13 +12,20 @@ ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 class WebSettings(BaseSettings):
     app_name: str = "web-app"
     default_patient_id: str = "patient-dev-1"
-    session_cookie_name: str = "session"
-    session_cookie_value: str = "dev-session"
+    session_cookie_name: str = "sid"
+    secret_key: str = "dev-secret-key-change-in-production"
+    cookie_secure: bool = False
+    database_url: str = "postgresql+asyncpg://monorepo:monorepo@localhost:5432/monorepo"
+    redis_url: str = "redis://localhost:6379/0"
+    google_client_id: str = ""
+    google_client_secret: str = ""
     cors_allow_origins: Annotated[tuple[str, ...], NoDecode] = Field(
         default=("https://api.rafaellapontes.com.br",)
     )
     cors_allow_origin_regex: str = r"chrome-extension://.*"
-    cors_allow_methods: Annotated[tuple[str, ...], NoDecode] = Field(default=("GET", "POST", "OPTIONS"))
+    cors_allow_methods: Annotated[tuple[str, ...], NoDecode] = Field(
+        default=("GET", "POST", "OPTIONS")
+    )
     cors_allow_headers: Annotated[tuple[str, ...], NoDecode] = Field(
         default=("Authorization", "Content-Type")
     )
@@ -31,7 +38,9 @@ class WebSettings(BaseSettings):
         case_sensitive=False,
     )
 
-    @field_validator("cors_allow_origins", "cors_allow_methods", "cors_allow_headers", mode="before")
+    @field_validator(
+        "cors_allow_origins", "cors_allow_methods", "cors_allow_headers", mode="before"
+    )
     @classmethod
     def split_csv(cls, value: Any) -> Any:
         if isinstance(value, str):

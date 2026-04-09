@@ -24,3 +24,8 @@ spec:
                 secretKeyRef:
                   name: redis-broker-secret
                   key: url
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: web-secret
+                  key: database_url
