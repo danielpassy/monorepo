@@ -48,8 +48,15 @@ jobs:
           load: true
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
-      - name: Run web tests
-        run: docker run --rm ghcr.io/danielpassy/monorepo-web:${{ github.sha }} uv run task test
+      - name: test
+        run: |
+          docker run --rm \
+            --network host \
+            -e DATABASE_URL \
+            -e REDIS_URL \
+            -w /app \
+            ghcr.io/danielpassy/monorepo-web:${{ github.sha }} \
+            uv run task test
       - name: Push web image
         if: inputs.event_name == 'push'
         uses: docker/build-push-action@v6
