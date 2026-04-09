@@ -15,11 +15,49 @@ spec:
       labels:
         app: web
     spec:
+      initContainers:
+        - name: migrate
+          image: ghcr.io/danielpassy/monorepo-web:latest
+          command: ["uv", "run", "alembic", "upgrade", "head"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: web-secret
+                  key: database_url
       containers:
         - name: web
           image: ghcr.io/danielpassy/monorepo-web:latest
           ports:
             - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: web-secret
+                  key: database_url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: redis-broker-secret
+                  key: url
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: web-secret
+                  key: secret_key
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: web-secret
+                  key: google_client_id
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: web-secret
+                  key: google_client_secret
+            - name: COOKIE_SECURE
+              value: "true"
 ---
 apiVersion: v1
 kind: Service
