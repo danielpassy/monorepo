@@ -7,6 +7,10 @@ export default defineConfig({
   staged: {
     "*": "vp check --fix",
   },
+  test: {
+    environment: "jsdom",
+    setupFiles: ["./src/test/page-test-setup.ts"],
+  },
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
