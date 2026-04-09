@@ -1,0 +1,90 @@
+#!/bin/sh
+set -eu
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+usage() {
+  cat <<'EOF'
+Usage: sandbox/run <command> [name] [args...]
+
+Commands:
+  up [name]       Create and start a sandbox (default name: current dir)
+  down [name]     Tear down a sandbox and its volumes
+  shell [name]    Exec into the agent container
+  stop [name]     Stop a running sandbox
+  restart [name]  Restart a sandbox
+  logs [name]     Tail sandbox logs
+  ps              List all running sandboxes
+  build           Rebuild the agent image
+
+Each sandbox gets its own project name, infra, and agent container.
+Agents (CC/Codex) run inside with credentials mounted from the host.
+EOF
+}
+
+resolve_name() {
+  echo "sandbox-${1:-$(basename "$(pwd)")}"
+}
+
+compose() {
+  cd "$REPO_ROOT"
+  docker compose \
+    -p "$project_name" \
+    -f "$REPO_ROOT/docker-compose.yml" \
+    -f "$SCRIPT_DIR/docker-compose.yml" \
+    "$@"
+}
+
+if [ "$#" -eq 0 ]; then
+  usage
+  exit 1
+fi
+
+command="$1"
+shift
+
+case "$command" in
+  -h|--help|help)
+    usage
+    exit 0
+    ;;
+  up)
+    project_name="$(resolve_name "${1:-}")"
+    [ "${1:-}" ] && shift
+    # Ensure host credential paths exist so Docker doesn't create them as directories
+    mkdir -p "$HOME/.claude" "$HOME/.codex" "$HOME/.config/gh"
+    touch "$HOME/.claude.json"
+    compose up -d --build "$@"
+    echo "Sandbox '$project_name' is running."
+    echo "  shell:  sandbox/run shell ${project_name#sandbox-}"
+    ;;
+  down)
+    project_name="$(resolve_name "${1:-}")"
+    [ "${1:-}" ] && shift
+    compose down -v "$@"
+    ;;
+  shell)
+    project_name="$(resolve_name "${1:-}")"
+    [ "${1:-}" ] && shift
+    compose exec agent bash "$@"
+    ;;
+  stop|restart|logs)
+    project_name="$(resolve_name "${1:-}")"
+    [ "${1:-}" ] && shift
+    compose "$command" "$@"
+    ;;
+  ps)
+    docker compose ls --filter "name=sandbox-"
+    ;;
+  build)
+    project_name="$(resolve_name "${1:-}")"
+    [ "${1:-}" ] && shift
+    compose build "$@"
+    ;;
+  *)
+    echo "Unknown command: $command" >&2
+    usage
+    exit 1
+    ;;
+esac

@@ -1,0 +1,35 @@
+services:
+  agent:
+    build:
+      context: .
+      dockerfile: sandbox/Dockerfile
+    volumes:
+      - .:/workspace
+      - ~/.claude:/home/agent/.claude
+      - ~/.claude.json:/home/agent/.claude.json
+      - ~/.codex:/home/agent/.codex
+      - ~/.config/gh:/home/agent/.config/gh
+    environment:
+      DATABASE_URL: postgresql://monorepo:monorepo@postgres:5432/monorepo
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    tty: true
+
+  # No host ports — agent connects over the Docker network
+  postgres:
+    ports: !override []
+  redis:
+    ports: !override []
+
+  # Disable app services — the agent runs them directly
+  web:
+    profiles: [disabled]
+  worker:
+    profiles: [disabled]
+  base:
+    profiles: [disabled]
