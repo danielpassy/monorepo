@@ -1,16 +1,20 @@
-import asyncio
 import os
+from pathlib import Path
 
+from alembic import command
+from alembic.config import Config
 import fakeredis.aioredis
 import pytest
 import pytest_asyncio
+from fastapi import APIRouter
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+os.environ.setdefault("SECRET_KEY", "test-secret-key-change-in-tests")
 
 from web.auth import service as auth_service
 from web.db import get_session
 from web.main import app
-from web.models.base import Base
 from web.redis_client import get_redis
 import web.auth.model  # noqa: F401 — registers models with Base
 
@@ -18,6 +22,18 @@ DATABASE_URL = os.environ.get(
     "DATABASE_URL",
     "postgresql+asyncpg://monorepo:monorepo@postgres:5432/monorepo",
 )
+APP_ROOT = Path(__file__).resolve().parents[1]
+ALEMBIC_INI = APP_ROOT / "web" / "migrations" / "alembic.ini"
+
+test_router = APIRouter()
+
+
+@test_router.get("/_test/protected")
+async def protected() -> dict[str, str]:
+    return {"detail": "ok"}
+
+
+app.include_router(test_router)
 
 
 def _make_engine():
@@ -26,29 +42,33 @@ def _make_engine():
 
 @pytest.fixture(scope="session", autouse=True)
 def create_tables():
-    """Create tables once before the session; drop after. Uses asyncio.run() to
-    avoid sharing an event loop across pytest-asyncio's per-test loops."""
+    """Apply Alembic migrations once before the session; roll back after."""
 
-    async def _setup():
-        engine = _make_engine()
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        await engine.dispose()
+    def _alembic_config() -> Config:
+        config = Config(str(ALEMBIC_INI))
+        config.set_main_option("sqlalchemy.url", DATABASE_URL)
+        return config
 
-    async def _teardown():
-        engine = _make_engine()
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all)
-        await engine.dispose()
+    def _setup() -> None:
+        command.upgrade(_alembic_config(), "head")
 
-    asyncio.run(_setup())
+    def _teardown() -> None:
+        command.downgrade(_alembic_config(), "base")
+
+    _setup()
     yield
-    asyncio.run(_teardown())
+    _teardown()
 
 
 @pytest_asyncio.fixture
 async def db_session(create_tables):
-    """Fresh AsyncSession per test backed by a transaction that rolls back."""
+    """Provide a clean AsyncSession bound to a rollback-only test transaction.
+
+    The fixture opens a real connection, starts a transaction, and overrides the
+    FastAPI session dependency so app code uses that same session. The transaction
+    is rolled back after the test, which keeps every test isolated without having
+    to truncate tables manually.
+    """
     engine = _make_engine()
     async with engine.connect() as conn:
         transaction = await conn.begin()

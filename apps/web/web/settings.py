@@ -13,7 +13,7 @@ class WebSettings(BaseSettings):
     app_name: str = "web-app"
     default_patient_id: str = "patient-dev-1"
     session_cookie_name: str = "sid"
-    secret_key: str = "dev-secret-key-change-in-production"
+    secret_key: str
     cookie_secure: bool = False
     database_url: str = "postgresql+asyncpg://monorepo:monorepo@localhost:5432/monorepo"
     redis_url: str = "redis://localhost:6379/0"

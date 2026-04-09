@@ -13,6 +13,7 @@
 - Entry point: `entrypoint.py` runs uvicorn on 0.0.0.0:8000
 - Settings: `WebSettings(BaseSettings)` loaded from `.env`, accessed via LRU-cached `get_settings()`
 - Monorepo: shared packages symlinked under `web/_shared/`
+- Migrations: Alembic lives in `web/migrations/` with `web/migrations/alembic.ini` as the entrypoint
 
 ## Conventions
 - CSV env vars for list fields (CORS origins, methods, headers) via Pydantic field validator
@@ -33,6 +34,7 @@
 - Ingress: Traefik with Let's Encrypt via Cloudflare DNS challenge
   - `api.rafaellapontes.com.br` → `web` service (port 80), rate-limited (30 req/min, burst 10)
   - `app.rafaellapontes.com.br` → frontend served from Hetzner Object Storage (ExternalName service)
+- Web init container runs `alembic -c web/migrations/alembic.ini upgrade head` before the app container starts
 - Redis deployed as `redis-broker` Deployment+Service, password from k8s Secret
 - Traefik configured via `HelmChartConfig` in `kube-system`
 

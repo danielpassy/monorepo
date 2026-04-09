@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
+from starlette.middleware.sessions import SessionMiddleware
 
 from web._shared.logging import format_log_line
 from web.auth.oauth import configure_google_oauth
@@ -13,6 +14,7 @@ def create_app() -> FastAPI:
     settings = get_settings()
     configure_google_oauth()
     app = FastAPI(title=settings.app_name)
+    app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
     app.add_middleware(AuthMiddleware)
     app.add_middleware(
         CORSMiddleware,

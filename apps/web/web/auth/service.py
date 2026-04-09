@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 import redis.asyncio as aioredis
 from itsdangerous import BadSignature, Signer
-from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from web.auth.model import User
@@ -34,14 +34,19 @@ def unsign_session_id(signed_value: str, secret: str) -> str | None:
         return None
 
 
-async def get_or_create_user(session: AsyncSession, info: GoogleUserInfo) -> User:
-    result = await session.execute(select(User).where(User.google_id == info.google_id))
-    user = result.scalar_one_or_none()
-    if user is None:
-        user = User(email=info.email, name=info.name, google_id=info.google_id)
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
+async def create_google_user(session: AsyncSession, info: GoogleUserInfo) -> User:
+    stmt = (
+        insert(User)
+        .values(email=info.email, name=info.name, google_id=info.google_id)
+        .on_conflict_do_update(
+            index_elements=[User.google_id],
+            set_={"email": info.email, "name": info.name},
+        )
+        .returning(User)
+    )
+    result = await session.execute(stmt)
+    user = result.scalar_one()
+    await session.commit()
     return user
 
 

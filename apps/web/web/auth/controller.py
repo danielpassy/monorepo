@@ -32,7 +32,7 @@ async def google_callback(
         email=userinfo.email,
         name=userinfo.name,
     )
-    user = await service.get_or_create_user(db, google_user)
+    user = await service.create_google_user(db, google_user)
     session_id = await service.create_session(redis, user)
     signed = service.sign_session_id(session_id, settings.secret_key)
 

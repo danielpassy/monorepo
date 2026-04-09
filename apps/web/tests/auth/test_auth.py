@@ -1,4 +1,5 @@
 from httpx import ASGITransport, AsyncClient
+from starlette.responses import RedirectResponse
 
 from web.auth import service as auth_service
 from web.main import app
@@ -6,10 +7,9 @@ from web.settings import get_settings
 
 
 async def test_valid_session_passes_middleware(authed_client) -> None:
-    response = await authed_client.get("/auth/me")
+    response = await authed_client.get("/_test/protected")
     assert response.status_code == 200
-    data = response.json()
-    assert data["email"] == "test@example.com"
+    assert response.json() == {"detail": "ok"}
 
 
 async def test_missing_session_returns_401(client) -> None:
@@ -19,39 +19,56 @@ async def test_missing_session_returns_401(client) -> None:
 
 
 async def test_protected_route_without_session_returns_401(client) -> None:
-    response = await client.get("/some-protected-route")
+    response = await client.get("/_test/protected")
     assert response.status_code == 401
 
 
 async def test_protected_route_with_valid_session_passes(authed_client) -> None:
-    # /auth/me is in the public whitelist and reflects the injected user
-    response = await authed_client.get("/auth/me")
+    response = await authed_client.get("/_test/protected")
     assert response.status_code == 200
 
 
 async def test_invalid_cookie_signature_returns_401(client) -> None:
     settings = get_settings()
     client.cookies.set(settings.session_cookie_name, "tampered.invalidsig")
-    response = await client.get("/auth/me")
-    # /auth/me is public so middleware skips it; but there's no user in state
+    response = await client.get("/_test/protected")
     assert response.status_code == 401
 
 
-async def test_get_or_create_user_creates_on_first_login(db_session) -> None:
+async def test_google_login_uses_starlette_session(client, monkeypatch) -> None:
+    import web.auth.oauth as auth_oauth
+
+    async def fake_authorize_redirect(request, redirect_uri):
+        assert request.session == {}
+        request.session["oauth_test_state"] = "present"
+        return RedirectResponse(url=redirect_uri)
+
+    monkeypatch.setattr(
+        auth_oauth._google_client(),
+        "authorize_redirect",
+        fake_authorize_redirect,
+    )
+
+    response = await client.get("/auth/google", follow_redirects=False)
+    assert response.status_code in {302, 307}
+    assert "session=" in response.headers.get("set-cookie", "")
+
+
+async def test_create_google_user_creates_on_first_login(db_session) -> None:
     info = auth_service.GoogleUserInfo(
         google_id="g-new-1", email="new@example.com", name="New User"
     )
-    user = await auth_service.get_or_create_user(db_session, info)
+    user = await auth_service.create_google_user(db_session, info)
     assert user.id is not None
     assert user.email == "new@example.com"
 
 
-async def test_get_or_create_user_reuses_on_second_login(db_session) -> None:
+async def test_create_google_user_updates_on_second_login(db_session) -> None:
     info = auth_service.GoogleUserInfo(
         google_id="g-dup-1", email="dup@example.com", name="Dup User"
     )
-    user1 = await auth_service.get_or_create_user(db_session, info)
-    user2 = await auth_service.get_or_create_user(db_session, info)
+    user1 = await auth_service.create_google_user(db_session, info)
+    user2 = await auth_service.create_google_user(db_session, info)
     assert user1.id == user2.id
 
 
