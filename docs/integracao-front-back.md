@@ -165,3 +165,164 @@ FastAPI → apps/web/openapi.json (commitado)
 - [ ] Backend CI falha se `openapi.json` estiver desatualizado
 - [ ] Frontend CI roda codegen + `vp check` e falha em erros de tipo
 - [ ] Codegen roda como pré-build step localmente
+
+---
+
+## 6. Requisitos para implementar as features mockadas
+
+### Objetivo
+
+Implementar no backend as features que hoje existem só no frontend mockado e integrar o frontend aos endpoints reais.
+
+Fontes atuais no frontend:
+
+- `apps/frontend/src/lib/patient-store.tsx`: estado local de pacientes e sessões
+- `apps/frontend/src/lib/mock-data.ts`: fixtures de pacientes e sessões
+- `apps/frontend/src/lib/mock-ai.ts`: geração fake de resumo
+- `apps/frontend/src/lib/types/therapy.ts`: tipos atuais da UI
+
+### Fora de escopo
+
+- Não criar `status` em `sessions`
+- Não criar campo de transcription provider
+- Não duplicar therapist/client em linhas ou registros de transcrição
+- Não escolher o modelo final de transcrição agora
+- Não implementar upload real para storage externo se isso ainda não existir no repo
+
+### Backend requirements
+
+#### Arquitetura
+
+Seguir `docs/backend-structure.md`:
+
+- criar models SQLAlchemy async
+- criar migration Alembic
+- criar Pydantic schemas nos controllers
+- colocar regra de negócio em services
+- registrar endpoints via router
+- gerar/atualizar OpenAPI
+- cobrir endpoints com TestClient
+- cobrir regras principais em testes de service
+
+#### PostgreSQL models
+
+`clients`
+
+- `id`: `uuid`, primary key
+- `name`: `text`, not null
+- `email`: `text`, nullable
+- `phone`: `text`, nullable
+- `start_date`: `date`, not null
+- `created_at`: `timestamptz`, not null
+- `updated_at`: `timestamptz`, not null
+
+`sessions`
+
+- `id`: `uuid`, primary key
+- `client_id`: `uuid`, foreign key para `clients.id`, not null
+- `therapist_id`: `integer`, foreign key para `users.id`, not null
+- `date`: `date`, not null
+- `session_number`: `integer`, not null
+- `duration_minutes`: `integer`, nullable
+- `notes`: `text`, nullable
+- `summary`: `text`, nullable
+- `created_at`: `timestamptz`, not null
+- `updated_at`: `timestamptz`, not null
+
+`session_transcript_entries`
+
+- `id`: `uuid`, primary key
+- `session_id`: `uuid`, foreign key para `sessions.id`, not null
+- `status`: `text`, not null, valores permitidos: `waiting_to_be_processed`, `processing`, `processed`, `failed`
+- `audio_files`: `text[]`, not null, default `{}`
+- `transcript`: `text`, nullable
+- `created_at`: `timestamptz`, not null
+- `updated_at`: `timestamptz`, not null
+
+Constraints:
+
+- `sessions` deve ter índice em `client_id`
+- `sessions` deve ter unique constraint em `(client_id, session_number)`
+- `session_transcript_entries` deve ter índice em `session_id`
+- deletar `client` deve deletar suas `sessions` e `session_transcript_entries`
+
+#### Backend API
+
+Clients:
+
+- `GET /clients`: lista clientes
+- `POST /clients`: cria cliente
+- `GET /clients/{client_id}`: detalha cliente
+- `PATCH /clients/{client_id}`: atualiza cliente
+- `DELETE /clients/{client_id}`: remove cliente e dependências
+
+Sessions:
+
+- `GET /clients/{client_id}/sessions`: lista sessões do cliente ordenadas por `session_number desc`
+- `POST /clients/{client_id}/sessions`: cria sessão e calcula o próximo `session_number`
+- `GET /sessions/{session_id}`: retorna sessão completa
+- `PATCH /sessions/{session_id}`: atualiza `date`, `duration_minutes`, `notes`, `summary`
+- `DELETE /sessions/{session_id}`: remove sessão e transcrições
+
+Transcript entries:
+
+- `GET /sessions/{session_id}/transcript-entries`: lista transcrições da sessão
+- `POST /sessions/{session_id}/transcript-entries`: cria uma transcrição com `audio_files`
+- `GET /session-transcript-entries/{entry_id}`: detalha uma transcrição
+- `PATCH /session-transcript-entries/{entry_id}`: atualiza `status`, `audio_files` e `transcript`
+
+Summary:
+
+- `POST /sessions/{session_id}/summary/generate`: gera resumo usando `notes` e as transcrições da sessão
+- Se ainda não houver integração real com modelo, manter a lógica isolada em service para trocar depois
+
+#### Backend acceptance criteria
+
+- [ ] Models e migration Alembic criados
+- [ ] `sessions` não tem coluna `status`
+- [ ] `session_transcript_entries.audio_files` é array PostgreSQL (`text[]`)
+- [ ] `session_transcript_entries` não tem campo de provider
+- [ ] Criar sessão calcula o próximo `session_number`
+- [ ] Deletar cliente remove sessões e transcrições relacionadas
+- [ ] Endpoints retornam 404 para cliente/sessão/transcrição inexistente
+- [ ] OpenAPI atualizado
+- [ ] TestClient cobre pelo menos um happy path por endpoint
+- [ ] Services cobrem criação de sessão, cascata de delete e atualização de transcrição
+
+### Frontend requirements
+
+#### Arquitetura
+
+Seguir `docs/frontend-structure.md`:
+
+- criar funções async puras em `src/api/`
+- criar hooks finos em `src/hooks/` com TanStack Query
+- usar tipos gerados de `src/api/generated/`
+- manter MSW em `src/mocks/` espelhando a API real
+- páginas não devem chamar `fetch` diretamente
+- server state não deve viver em React Context
+
+#### Mudanças no frontend
+
+- Remover `status` do tipo de `Session`
+- Trocar `PatientStoreProvider` por hooks baseados nos endpoints reais
+- Migrar home para buscar clientes via hook
+- Migrar página de sessão para buscar cliente, sessão e transcript entries via hooks
+- Migrar criação/deleção de cliente para mutations
+- Migrar criação/deleção de sessão para mutations
+- Migrar edição de `notes` e `summary` para mutations em `PATCH /sessions/{session_id}`
+- Migrar geração de resumo para `POST /sessions/{session_id}/summary/generate`
+- Migrar mocks para MSW mantendo o mesmo contrato do OpenAPI
+
+#### Frontend acceptance criteria
+
+- [ ] Home renderiza clientes vindos da API/hook
+- [ ] Criar cliente persiste via API e atualiza cache
+- [ ] Criar sessão persiste via API e navega para a sessão criada
+- [ ] Deletar sessão atual redireciona para outra sessão válida ou para a home
+- [ ] Notas e resumo sobrevivem a reload
+- [ ] `mock-ai.ts` não é usado no fluxo principal
+- [ ] `mock-data.ts` não é obrigatório para o fluxo principal
+- [ ] Nenhum componente faz `fetch` direto
+- [ ] MSW permite rodar a suíte sem backend real
+- [ ] Testes de página cobrem home e sessão com mocks
