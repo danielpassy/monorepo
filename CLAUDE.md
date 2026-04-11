@@ -19,30 +19,25 @@ Agents run inside sandboxes — Docker containers with all tooling pre-installed
 ### Starting a sandbox
 
 ```sh
-sandbox/run up           # default name derived from cwd
-sandbox/run up my-task   # named sandbox
+sandbox/run shell        # start and enter the current worktree sandbox
 ```
 
 ### Entering a sandbox
 
 ```sh
-sandbox/run shell           # default sandbox
-sandbox/run shell my-task   # named sandbox
+sandbox/run shell           # current worktree sandbox
 ```
 
 ### Other commands
 
 ```sh
-sandbox/run ps              # list running sandboxes
-sandbox/run logs my-task    # tail logs
-sandbox/run stop my-task    # stop without removing
-sandbox/run down my-task    # tear down + remove volumes
-sandbox/run build           # rebuild the agent image
+sandbox/run stop            # stop without removing
+sandbox/run destroy         # tear down + remove volumes
 ```
 
 ### Inside the sandbox
 
-The repo is mounted at `/workspace`. Environment variables `DATABASE_URL`, `REDIS_URL`, and `CELERY_BROKER_URL` are pre-set pointing at the sandbox's own postgres and redis. Host credentials for Claude Code, Codex, and GitHub CLI are mounted from `~/.claude`, `~/.codex`, and `~/.config/gh`.
+The repo is mounted at `/workspace`. Environment variables `DATABASE_URL`, `REDIS_URL`, and `CELERY_BROKER_URL` are pre-set pointing at the sandbox's own postgres and redis. Host credentials for Claude Code, Codex, and GitHub CLI are mounted read-write from `~/.claude`, `~/.codex`, `~/.config/gh`, and `~/.claude.json`.
 
 Run the backend directly (not as a container):
 ```sh

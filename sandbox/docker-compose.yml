@@ -5,10 +5,10 @@ services:
       dockerfile: sandbox/Dockerfile
     volumes:
       - .:/workspace
-      - ~/.claude:/home/agent/.claude
-      - ~/.claude.json:/home/agent/.claude.json
-      - ~/.codex:/home/agent/.codex
-      - ~/.config/gh:/home/agent/.config/gh
+      - ~/.claude:/home/agent/.claude:rw
+      - ~/.claude.json:/home/agent/.claude.json:rw
+      - ~/.codex:/home/agent/.codex:rw
+      - ~/.config/gh:/home/agent/.config/gh:rw
     environment:
       DATABASE_URL: postgresql://monorepo:monorepo@postgres:5432/monorepo
       REDIS_URL: redis://redis:6379/0
