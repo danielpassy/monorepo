@@ -2,7 +2,7 @@ import { beforeAll, afterAll, afterEach, describe, test, expect } from "vite-plu
 import { setupServer } from "msw/node";
 import { http, HttpResponse } from "msw";
 import { devLogin, getGoogleLoginUrl, getMe, logout } from "./auth";
-import { settings } from "@/core/settings";
+import { settings } from "@/settings";
 
 const server = setupServer();
 

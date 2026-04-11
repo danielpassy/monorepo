@@ -1,5 +1,5 @@
 import { http, HttpResponse } from "msw";
-import { apiUrl } from "@/core/settings";
+import { apiUrl } from "@/settings";
 
 const mockUser = {
   user_id: 1,

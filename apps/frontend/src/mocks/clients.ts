@@ -1,6 +1,6 @@
 import { http, HttpResponse } from "msw";
 import type { ClientOut } from "@/api/generated/types.gen";
-import { apiUrl } from "@/core/settings";
+import { apiUrl } from "@/settings";
 
 const mockClients: ClientOut[] = [
   {

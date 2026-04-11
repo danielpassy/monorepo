@@ -1,7 +1,7 @@
 import { client } from "./client";
 import { meAuthMeGet, logoutAuthLogoutPost } from "./generated/sdk.gen";
 import type { MeAuthMeGetResponse } from "./generated/types.gen";
-import { apiUrl } from "@/core/settings";
+import { apiUrl } from "@/settings";
 
 export type { MeAuthMeGetResponse as User };
 

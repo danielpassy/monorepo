@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { router } from "./routes";
-import { settings } from "@/core/settings";
+import { settings } from "@/settings";
 import "./style.css";
 
 const queryClient = new QueryClient();

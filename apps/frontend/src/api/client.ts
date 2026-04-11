@@ -1,5 +1,5 @@
 import { client } from "./generated/client.gen";
-import { settings } from "@/core/settings";
+import { settings } from "@/settings";
 
 client.setConfig({
   baseUrl: settings.apiBaseUrl,
