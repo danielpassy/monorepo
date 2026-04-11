@@ -1,6 +1,7 @@
 import redis.asyncio as aioredis
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from web.auth import oauth as auth_oauth
@@ -46,6 +47,34 @@ async def google_callback(
         max_age=service.SESSION_TTL_SECONDS,
     )
     return response
+
+
+class DevLoginBody(BaseModel):
+    email: str
+
+
+@router.post("/dev-login")
+async def dev_login(
+    body: DevLoginBody,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_session),
+    redis: aioredis.Redis = Depends(get_redis),
+) -> dict[str, str | int]:
+    settings = get_settings()
+    user = await service.get_or_create_email_user(db, str(body.email))
+    session_id = await service.create_session(redis, user)
+    signed = service.sign_session_id(session_id, settings.secret_key)
+
+    response.set_cookie(
+        key=settings.session_cookie_name,
+        value=signed,
+        httponly=True,
+        samesite="lax",
+        secure=settings.cookie_secure,
+        max_age=service.SESSION_TTL_SECONDS,
+    )
+    return {"user_id": user.id, "email": user.email, "name": user.name}
 
 
 @router.get("/me")

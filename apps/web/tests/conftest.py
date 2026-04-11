@@ -17,6 +17,8 @@ from web.db import get_session
 from web.main import app
 from web.redis_client import get_redis
 import web.auth.model  # noqa: F401 — registers models with Base
+import web.clients.model  # noqa: F401 — registers Client
+import web.sessions.model  # noqa: F401 — registers Session + SessionTranscriptEntry
 
 DATABASE_URL = os.environ.get(
     "DATABASE_URL",

@@ -1,8 +1,6 @@
 import { useState } from "react";
-import type { TranscriptEntry } from "@/lib/types/therapy";
 import { Button } from "@/components/ui/button";
 import { Sparkles, RefreshCw, Check } from "lucide-react";
-import { generateSummary } from "@/lib/mock-ai";
 import { cn } from "@/lib/utils";
 import {
   AlertDialog,
@@ -19,35 +17,31 @@ import {
 interface SummaryViewProps {
   value: string;
   onChange: (value: string) => void;
-  transcript: TranscriptEntry[];
-  notes: string;
+  onGenerate: () => Promise<void>;
+  onSave?: (value: string) => void;
+  isGenerating?: boolean;
 }
 
-export function SummaryView({ value, onChange, transcript, notes }: SummaryViewProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
+export function SummaryView({
+  value,
+  onChange,
+  onGenerate,
+  onSave,
+  isGenerating = false,
+}: SummaryViewProps) {
   const [localValue, setLocalValue] = useState(value);
-
-  const handleGenerate = async () => {
-    setIsGenerating(true);
-    try {
-      const summary = await generateSummary(transcript, notes);
-      setLocalValue(summary);
-      onChange(summary);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleRegenerate = async () => {
-    await handleGenerate();
-  };
 
   const handleChange = (newValue: string) => {
     setLocalValue(newValue);
     onChange(newValue);
+    if (onSave) onSave(newValue);
   };
 
-  // Empty state - no summary yet
+  // Sync when external value changes (e.g. after generate)
+  if (value !== localValue && !isGenerating) {
+    setLocalValue(value);
+  }
+
   if (!value && !localValue && !isGenerating) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 p-8">
@@ -57,10 +51,10 @@ export function SummaryView({ value, onChange, transcript, notes }: SummaryViewP
         <div className="text-center">
           <h3 className="font-medium">Nenhum Resumo Gerado</h3>
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-            Gere um resumo por IA com base na transcrição da sessão e nas suas notas clínicas.
+            Gere um resumo com base nas notas clínicas e transcrições da sessão.
           </p>
         </div>
-        <Button onClick={handleGenerate} disabled={isGenerating}>
+        <Button onClick={onGenerate} disabled={isGenerating}>
           <Sparkles className="mr-2 size-4" />
           Gerar Resumo
         </Button>
@@ -69,7 +63,6 @@ export function SummaryView({ value, onChange, transcript, notes }: SummaryViewP
     );
   }
 
-  // Loading state
   if (isGenerating) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 p-8">
@@ -78,20 +71,18 @@ export function SummaryView({ value, onChange, transcript, notes }: SummaryViewP
         </div>
         <div className="text-center">
           <h3 className="font-medium">Gerando Resumo</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Analisando transcrição e notas...</p>
+          <p className="mt-1 text-sm text-muted-foreground">Analisando notas e transcrições...</p>
         </div>
       </div>
     );
   }
 
-  // Summary exists - show editable view
   return (
     <div className="flex h-full flex-col">
-      {/* Toolbar */}
       <div className="flex items-center justify-between border-b px-4 py-2">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Check className="size-3" />
-          <span>Resumo gerado por IA (editável)</span>
+          <span>Resumo gerado (editável)</span>
         </div>
         <AlertDialog>
           <AlertDialogTrigger asChild>
@@ -110,13 +101,12 @@ export function SummaryView({ value, onChange, transcript, notes }: SummaryViewP
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleRegenerate}>Regenerar</AlertDialogAction>
+              <AlertDialogAction onClick={onGenerate}>Regenerar</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       </div>
 
-      {/* Editor */}
       <div className="flex-1 overflow-hidden">
         <textarea
           value={localValue}

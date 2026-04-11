@@ -12,6 +12,7 @@ PUBLIC_ROUTES = {
     ("GET", "/auth/google/callback"),
     ("GET", "/auth/me"),
     ("POST", "/auth/logout"),
+    ("POST", "/auth/dev-login"),
 }
 
 

@@ -168,7 +168,7 @@ FastAPI → apps/web/openapi.json (commitado)
 
 ---
 
-## 6. Requisitos para implementar as features mockadas
+## 5. Requisitos para implementar as features mockadas
 
 ### Objetivo
 

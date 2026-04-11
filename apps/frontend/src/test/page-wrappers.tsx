@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
-import { PatientStoreProvider } from "@/lib/patient-store";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createElement } from "react";
 
-export function withPatientStore(children: ReactNode) {
-  return <PatientStoreProvider>{children}</PatientStoreProvider>;
+export function withQueryClient(children: ReactNode) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return createElement(QueryClientProvider, { client }, children);
 }
