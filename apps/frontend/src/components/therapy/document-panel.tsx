@@ -1,4 +1,5 @@
-import type { DocumentType, SessionDocuments, TranscriptEntry } from "@/lib/types/therapy";
+import type { DocumentType } from "@/lib/types/therapy";
+import type { TranscriptEntryOut } from "@/api/generated/types.gen";
 import {
   Select,
   SelectContent,
@@ -14,10 +15,15 @@ import { SummaryView } from "./summary-view";
 interface DocumentPanelProps {
   documentType: DocumentType;
   onDocumentTypeChange: (type: DocumentType) => void;
-  documents: SessionDocuments;
+  transcriptEntries: TranscriptEntryOut[];
+  notes: string;
+  summary: string;
   onNotesChange: (notes: string) => void;
+  onNotesSave?: (notes: string) => void;
   onSummaryChange: (summary: string) => void;
-  clientName: string;
+  onSummarySave?: (summary: string) => void;
+  onGenerateSummary: () => Promise<void>;
+  isGeneratingSummary?: boolean;
 }
 
 const documentLabels: Record<DocumentType, { label: string; icon: React.ReactNode }> = {
@@ -29,10 +35,15 @@ const documentLabels: Record<DocumentType, { label: string; icon: React.ReactNod
 export function DocumentPanel({
   documentType,
   onDocumentTypeChange,
-  documents,
+  transcriptEntries,
+  notes,
+  summary,
   onNotesChange,
+  onNotesSave,
   onSummaryChange,
-  clientName,
+  onSummarySave,
+  onGenerateSummary,
+  isGeneratingSummary,
 }: DocumentPanelProps) {
   return (
     <div className="flex h-full flex-col bg-background">
@@ -68,16 +79,17 @@ export function DocumentPanel({
       </div>
 
       <div className="flex-1 overflow-hidden">
-        {documentType === "transcript" && <TranscriptView entries={documents.transcript} />}
+        {documentType === "transcript" && <TranscriptView entries={transcriptEntries} />}
         {documentType === "notes" && (
-          <NotesEditor value={documents.notes} onChange={onNotesChange} />
+          <NotesEditor value={notes} onChange={onNotesChange} onSave={onNotesSave} />
         )}
         {documentType === "summary" && (
           <SummaryView
-            value={documents.summary}
+            value={summary}
             onChange={onSummaryChange}
-            transcript={documents.transcript}
-            notes={documents.notes}
+            onSave={onSummarySave}
+            onGenerate={onGenerateSummary}
+            isGenerating={isGeneratingSummary}
           />
         )}
       </div>

@@ -1,37 +1,46 @@
 import { useState, useCallback } from "react";
-import type { DocumentType, Session } from "@/lib/types/therapy";
+import type { DocumentType } from "@/lib/types/therapy";
+import type { SessionOut, TranscriptEntryOut } from "@/api/generated/types.gen";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { DocumentPanel } from "./document-panel";
 
 interface SessionWorkspaceProps {
-  session: Session;
-  clientName: string;
+  session: SessionOut;
+  transcriptEntries: TranscriptEntryOut[];
+  onNotesSave: (notes: string) => void;
+  onSummarySave: (summary: string) => void;
+  onGenerateSummary: () => Promise<void>;
+  isGeneratingSummary: boolean;
 }
 
 const COLLAPSE_THRESHOLD = 15;
 
-export function SessionWorkspace({ session, clientName }: SessionWorkspaceProps) {
-  // Shared document state - both panels reference this
-  const [documents, setDocuments] = useState(session.documents);
+export function SessionWorkspace({
+  session,
+  transcriptEntries,
+  onNotesSave,
+  onSummarySave,
+  onGenerateSummary,
+  isGeneratingSummary,
+}: SessionWorkspaceProps) {
+  const [notes, setNotes] = useState(session.notes ?? "");
+  const [summary, setSummary] = useState(session.summary ?? "");
 
-  // Each panel can show a different document type
   const [leftDocumentType, setLeftDocumentType] = useState<DocumentType>("transcript");
   const [rightDocumentType, setRightDocumentType] = useState<DocumentType>("notes");
 
-  // Panel visibility based on collapse
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
 
-  const handleNotesChange = useCallback((notes: string) => {
-    setDocuments((prev) => ({ ...prev, notes }));
-  }, []);
-
-  const handleSummaryChange = useCallback((summary: string) => {
-    setDocuments((prev) => ({ ...prev, summary }));
-  }, []);
+  // Sync when session data updates (e.g. after summary generation)
+  if (session.notes !== null && session.notes !== undefined && session.notes !== notes) {
+    setNotes(session.notes);
+  }
+  if (session.summary !== null && session.summary !== undefined && session.summary !== summary) {
+    setSummary(session.summary);
+  }
 
   const handleLayout = useCallback((sizes: number[]) => {
-    // Collapse panels when dragged below threshold
     setLeftCollapsed(sizes[0] < COLLAPSE_THRESHOLD);
     setRightCollapsed(sizes[1] < COLLAPSE_THRESHOLD);
   }, []);
@@ -50,10 +59,15 @@ export function SessionWorkspace({ session, clientName }: SessionWorkspaceProps)
           <DocumentPanel
             documentType={leftDocumentType}
             onDocumentTypeChange={setLeftDocumentType}
-            documents={documents}
-            onNotesChange={handleNotesChange}
-            onSummaryChange={handleSummaryChange}
-            clientName={clientName}
+            transcriptEntries={transcriptEntries}
+            notes={notes}
+            summary={summary}
+            onNotesChange={setNotes}
+            onNotesSave={onNotesSave}
+            onSummaryChange={setSummary}
+            onSummarySave={onSummarySave}
+            onGenerateSummary={onGenerateSummary}
+            isGeneratingSummary={isGeneratingSummary}
           />
         )}
       </ResizablePanel>
@@ -72,10 +86,15 @@ export function SessionWorkspace({ session, clientName }: SessionWorkspaceProps)
           <DocumentPanel
             documentType={rightDocumentType}
             onDocumentTypeChange={setRightDocumentType}
-            documents={documents}
-            onNotesChange={handleNotesChange}
-            onSummaryChange={handleSummaryChange}
-            clientName={clientName}
+            transcriptEntries={transcriptEntries}
+            notes={notes}
+            summary={summary}
+            onNotesChange={setNotes}
+            onNotesSave={onNotesSave}
+            onSummaryChange={setSummary}
+            onSummarySave={onSummarySave}
+            onGenerateSummary={onGenerateSummary}
+            isGeneratingSummary={isGeneratingSummary}
           />
         )}
       </ResizablePanel>

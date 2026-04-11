@@ -3,6 +3,10 @@ __pycache__/
 *.pyc
 .env
 .pytest_cache/
+.pnpm-store/
+
+# Generated API client (rebuilt from openapi.json via codegen)
+apps/frontend/src/api/generated/
 
 # Secrets
 infra/secrets.txt

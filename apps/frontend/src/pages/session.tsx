@@ -1,9 +1,18 @@
 import { useParams, useNavigate } from "@tanstack/react-router";
-import { usePatientStore } from "@/lib/patient-store";
 import { AppHeader } from "@/components/therapy/app-header";
 import { ClientHeader } from "@/components/therapy/client-header";
 import { SessionSidebar } from "@/components/therapy/session-sidebar";
 import { SessionWorkspace } from "@/components/therapy/session-workspace";
+import { useClient } from "@/hooks/useClients";
+import {
+  useSessions,
+  useSession,
+  useCreateSession,
+  useDeleteSession,
+  useUpdateSession,
+  useGenerateSummary,
+  useTranscriptEntries,
+} from "@/hooks/useSessions";
 
 export default function SessionPage() {
   const { clientId, sessionId } = useParams({ strict: false }) as {
@@ -12,23 +21,36 @@ export default function SessionPage() {
   };
   const navigate = useNavigate();
 
-  const { getClientById, getSessionById, getSessionsByClientId, addSession, deleteSession } =
-    usePatientStore();
+  const { data: client, isLoading: clientLoading } = useClient(clientId);
+  const { data: session, isLoading: sessionLoading } = useSession(sessionId);
+  const { data: sessions = [], isLoading: sessionsLoading } = useSessions(clientId);
+  const { data: transcriptEntries = [] } = useTranscriptEntries(sessionId);
 
-  const client = getClientById(clientId);
-  const session = getSessionById(sessionId);
-  const clientSessions = getSessionsByClientId(clientId);
+  const createSession = useCreateSession(clientId);
+  const deleteSession = useDeleteSession(clientId);
+  const updateSession = useUpdateSession(sessionId);
+  const generateSummary = useGenerateSummary(sessionId);
+
+  const isLoading = clientLoading || sessionLoading || sessionsLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <p className="text-muted-foreground">Carregando...</p>
+      </div>
+    );
+  }
 
   if (!client) {
     void navigate({ to: "/" });
     return null;
   }
 
-  if (!session || session.clientId !== clientId) {
-    if (clientSessions.length > 0) {
+  if (!session || session.client_id !== clientId) {
+    if (sessions.length > 0) {
       void navigate({
         to: "/clients/$clientId/sessions/$sessionId",
-        params: { clientId, sessionId: clientSessions[0].id },
+        params: { clientId, sessionId: sessions[0].id },
       });
     } else {
       void navigate({ to: "/" });
@@ -36,12 +58,25 @@ export default function SessionPage() {
     return null;
   }
 
-  const handleNewSession = () => {
-    return addSession(clientId);
+  const handleNewSession = async () => {
+    const today = new Date().toISOString().split("T")[0];
+    return createSession.mutateAsync({ date: today });
   };
 
-  const handleDeleteSession = (sessionIdToDelete: string) => {
-    deleteSession(sessionIdToDelete);
+  const handleDeleteSession = async (sessionIdToDelete: string) => {
+    await deleteSession.mutateAsync(sessionIdToDelete);
+  };
+
+  const handleNotesSave = (notes: string) => {
+    updateSession.mutate({ notes });
+  };
+
+  const handleSummarySave = (summary: string) => {
+    updateSession.mutate({ summary });
+  };
+
+  const handleGenerateSummary = async () => {
+    await generateSummary.mutateAsync();
   };
 
   return (
@@ -51,14 +86,21 @@ export default function SessionPage() {
 
       <div className="flex flex-1 overflow-hidden">
         <SessionSidebar
-          sessions={clientSessions}
+          sessions={sessions}
           currentSessionId={sessionId}
           clientId={clientId}
           onNewSession={handleNewSession}
           onDeleteSession={handleDeleteSession}
         />
         <main className="flex-1 overflow-hidden">
-          <SessionWorkspace session={session} clientName={client.name} />
+          <SessionWorkspace
+            session={session}
+            transcriptEntries={transcriptEntries}
+            onNotesSave={handleNotesSave}
+            onSummarySave={handleSummarySave}
+            onGenerateSummary={handleGenerateSummary}
+            isGeneratingSummary={generateSummary.isPending}
+          />
         </main>
       </div>
     </div>

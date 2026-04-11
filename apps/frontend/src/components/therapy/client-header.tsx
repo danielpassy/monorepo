@@ -1,11 +1,10 @@
-import type { Client, Session } from "@/lib/types/therapy";
-import { Calendar, Hash, Radio } from "lucide-react";
+import type { ClientOut, SessionOut } from "@/api/generated/types.gen";
+import { Calendar, Hash } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { cn } from "@/lib/utils";
 
 interface ClientHeaderProps {
-  client: Client;
-  session: Session;
+  client: ClientOut;
+  session: SessionOut;
 }
 
 export function ClientHeader({ client, session }: ClientHeaderProps) {
@@ -44,18 +43,9 @@ export function ClientHeader({ client, session }: ClientHeaderProps) {
             </span>
             <span className="flex items-center gap-1.5">
               <Hash className="size-4" />
-              Sessão {session.sessionNumber}
+              Sessão {session.session_number}
             </span>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {session.status === "in-progress" && (
-            <div className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-sm">
-              <Radio className={cn("size-4 text-primary", "animate-pulse")} />
-              <span className="font-medium text-primary">Sessão Ativa</span>
-            </div>
-          )}
         </div>
       </div>
     </div>

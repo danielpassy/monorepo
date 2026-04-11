@@ -38,6 +38,13 @@ class WebSettings(BaseSettings):
         case_sensitive=False,
     )
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def ensure_asyncpg_driver(cls, value: Any) -> Any:
+        if isinstance(value, str) and value.startswith("postgresql://"):
+            return value.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return value
+
     @field_validator(
         "cors_allow_origins", "cors_allow_methods", "cors_allow_headers", mode="before"
     )

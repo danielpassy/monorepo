@@ -35,6 +35,9 @@ def create_app() -> FastAPI:
     async def unhandled_exception_handler(
         request: Request, exc: Exception
     ) -> JSONResponse:
+        import traceback
+
+        traceback.print_exc()
         return JSONResponse(
             status_code=500, content={"detail": "internal server error"}
         )
