@@ -45,8 +45,9 @@ export async function updateCustomer(
 }
 
 export async function deleteCustomer(customerId: string): Promise<void> {
-  await deleteCustomerCustomersCustomerIdDelete({
+  const { error } = await deleteCustomerCustomersCustomerIdDelete({
     path: { customer_id: customerId },
     throwOnError: false,
   });
+  if (error) throw error;
 }

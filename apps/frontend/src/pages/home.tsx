@@ -19,16 +19,31 @@ import { useCustomers, useCreateCustomer } from "@/hooks/useCustomers";
 import { useCreateSession } from "@/hooks/useSessions";
 import { getClientInitials } from "./home.logic";
 
+const formatLocalDate = (value: Date) => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const formatMonthYearPtBr = (value: string) => {
+  const [year, month] = value.split("-").map(Number);
+  return new Intl.DateTimeFormat("pt-BR", {
+    month: "short",
+    year: "numeric",
+  }).format(new Date(year, month - 1, 1));
+};
+
 export default function HomePage() {
   const navigate = useNavigate();
-  const { data: clients = [], isLoading } = useCustomers();
+  const { data: clients = [], isLoading, isError, error } = useCustomers();
   const createClient = useCreateCustomer();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newPatientName, setNewPatientName] = useState("");
 
   const handleAddPatient = () => {
     if (!newPatientName.trim()) return;
-    const today = new Date().toISOString().split("T")[0];
+    const today = formatLocalDate(new Date());
     createClient.mutate(
       { name: newPatientName.trim(), start_date: today },
       {
@@ -95,6 +110,10 @@ export default function HomePage() {
 
           {isLoading ? (
             <div className="py-12 text-center text-muted-foreground">Carregando...</div>
+          ) : isError ? (
+            <div className="py-12 text-center text-destructive">
+              {error instanceof Error ? error.message : "Não foi possível carregar os pacientes."}
+            </div>
           ) : (
             <div className="grid gap-4">
               {clients.map((client) => (
@@ -153,7 +172,7 @@ function ClientCard({
   const initials = getClientInitials(clientName);
 
   const handleNewSession = () => {
-    const today = new Date().toISOString().split("T")[0];
+    const today = formatLocalDate(new Date());
     createSession.mutate({ date: today }, { onSuccess: (session) => onNavigate(session.id) });
   };
 
@@ -185,11 +204,7 @@ function ClientCard({
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <Calendar className="size-4" />
-            Iniciado em{" "}
-            {new Date(clientStartDate).toLocaleDateString("pt-BR", {
-              month: "short",
-              year: "numeric",
-            })}
+            Iniciado em {formatMonthYearPtBr(clientStartDate)}
           </span>
         </div>
       </CardContent>

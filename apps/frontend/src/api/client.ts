@@ -8,7 +8,9 @@ client.setConfig({
 
 client.interceptors.response.use((response) => {
   if (response.status === 401) {
-    window.location.href = "/#/login";
+    if (window.location.hash !== "#/login") {
+      window.location.hash = "/login";
+    }
   }
   return response;
 });

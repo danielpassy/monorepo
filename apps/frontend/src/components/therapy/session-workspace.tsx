@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { DocumentType } from "@/lib/types/therapy";
 import type { SessionOut, TranscriptEntryOut } from "@/api/generated/types.gen";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
@@ -33,12 +33,13 @@ export function SessionWorkspace({
   const [rightCollapsed, setRightCollapsed] = useState(false);
 
   // Sync when session data updates (e.g. after summary generation)
-  if (session.notes !== null && session.notes !== undefined && session.notes !== notes) {
-    setNotes(session.notes);
-  }
-  if (session.summary !== null && session.summary !== undefined && session.summary !== summary) {
-    setSummary(session.summary);
-  }
+  useEffect(() => {
+    setNotes(session.notes ?? "");
+  }, [session.id, session.notes]);
+
+  useEffect(() => {
+    setSummary(session.summary ?? "");
+  }, [session.id, session.summary]);
 
   const handleLayout = useCallback((sizes: number[]) => {
     setLeftCollapsed(sizes[0] < COLLAPSE_THRESHOLD);

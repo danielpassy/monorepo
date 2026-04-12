@@ -12,7 +12,7 @@ const server = setupServer(
   http.get(`${API_BASE}/auth/me`, () =>
     HttpResponse.json({ user_id: 1, email: "dev@example.com", name: "Dev User" }),
   ),
-  http.get(`${API_BASE}/clients`, () =>
+  http.get(`${API_BASE}/customers`, () =>
     HttpResponse.json([
       {
         id: "11111111-1111-1111-1111-111111111111",
@@ -53,7 +53,7 @@ test("home page renders the patient list from the API", async () => {
 });
 
 test("home page shows empty state when there are no clients", async () => {
-  server.use(http.get(`${API_BASE}/clients`, () => HttpResponse.json([])));
+  server.use(http.get(`${API_BASE}/customers`, () => HttpResponse.json([])));
 
   const { waitFor } = await import("@testing-library/react");
   const container = await renderPage(<HomePage />, { wrappers: [withQueryClient] });

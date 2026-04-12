@@ -103,7 +103,13 @@ export const sessionHandlers = [
   http.delete(apiUrl("/sessions/:session_id"), ({ params }) => {
     const idx = mockSessions.findIndex((s) => s.id === params.session_id);
     if (idx === -1) return HttpResponse.json({ detail: "session not found" }, { status: 404 });
+    const sessionId = params.session_id as string;
     mockSessions.splice(idx, 1);
+    for (let i = mockTranscriptEntries.length - 1; i >= 0; i -= 1) {
+      if (mockTranscriptEntries[i].session_id === sessionId) {
+        mockTranscriptEntries.splice(i, 1);
+      }
+    }
     return new HttpResponse(null, { status: 204 });
   }),
 

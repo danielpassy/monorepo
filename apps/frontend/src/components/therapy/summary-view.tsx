@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, RefreshCw, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -38,9 +38,11 @@ export function SummaryView({
   };
 
   // Sync when external value changes (e.g. after generate)
-  if (value !== localValue && !isGenerating) {
-    setLocalValue(value);
-  }
+  useEffect(() => {
+    if (!isGenerating) {
+      setLocalValue(value);
+    }
+  }, [value, isGenerating]);
 
   if (!value && !localValue && !isGenerating) {
     return (

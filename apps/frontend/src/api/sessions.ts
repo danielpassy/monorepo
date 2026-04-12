@@ -67,10 +67,11 @@ export async function updateSession(
 }
 
 export async function deleteSession(sessionId: string): Promise<void> {
-  await deleteSessionSessionsSessionIdDelete({
+  const { error } = await deleteSessionSessionsSessionIdDelete({
     path: { session_id: sessionId },
     throwOnError: false,
   });
+  if (error) throw error;
 }
 
 export async function generateSummary(sessionId: string): Promise<SessionOut> {
