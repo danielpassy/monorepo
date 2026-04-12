@@ -38,13 +38,13 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_constraint("uq_sessions_customer_session_number", "sessions")
+    op.drop_index("ix_sessions_customer_id", table_name="sessions")
+
+    op.alter_column("sessions", "customer_id", new_column_name="client_id")
+
     op.create_unique_constraint(
         "uq_sessions_client_session_number", "sessions", ["client_id", "session_number"]
     )
-
-    op.drop_index("ix_sessions_customer_id", table_name="sessions")
     op.create_index("ix_sessions_client_id", "sessions", ["client_id"])
-
-    op.alter_column("sessions", "customer_id", new_column_name="client_id")
 
     op.rename_table("customers", "clients")
