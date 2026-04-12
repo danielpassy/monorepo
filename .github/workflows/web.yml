@@ -80,7 +80,7 @@ jobs:
         run: |
           cp apps/web/openapi.json /tmp/openapi.committed.json
           cd apps/web && uv run task export_openapi
-          diff -u /tmp/openapi.committed.json apps/web/openapi.json
+          diff -u /tmp/openapi.committed.json openapi.json
       - name: Push web image
         if: inputs.event_name == 'push'
         uses: docker/build-push-action@v6
