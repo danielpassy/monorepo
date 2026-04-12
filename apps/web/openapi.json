@@ -186,7 +186,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCustomerBody"
+                "$ref": "#/components/schemas/CreateCustomerInput"
               }
             }
           },
@@ -281,7 +281,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCustomerBody"
+                "$ref": "#/components/schemas/UpdateCustomerInput"
               }
             }
           }
@@ -413,7 +413,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateSessionBody"
+                "$ref": "#/components/schemas/CreateSessionInput"
               }
             }
           }
@@ -507,7 +507,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateSessionBody"
+                "$ref": "#/components/schemas/UpdateSessionInput"
               }
             }
           }
@@ -682,7 +682,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateTranscriptEntryBody"
+                "$ref": "#/components/schemas/CreateTranscriptEntryInput"
               }
             }
           }
@@ -776,7 +776,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateTranscriptEntryBody"
+                "$ref": "#/components/schemas/UpdateTranscriptEntryInput"
               }
             }
           }
@@ -830,7 +830,7 @@
   },
   "components": {
     "schemas": {
-      "CreateCustomerBody": {
+      "CreateCustomerInput": {
         "properties": {
           "name": {
             "type": "string",
@@ -869,9 +869,9 @@
           "name",
           "start_date"
         ],
-        "title": "CreateCustomerBody"
+        "title": "CreateCustomerInput"
       },
-      "CreateSessionBody": {
+      "CreateSessionInput": {
         "properties": {
           "date": {
             "type": "string",
@@ -905,9 +905,9 @@
         "required": [
           "date"
         ],
-        "title": "CreateSessionBody"
+        "title": "CreateSessionInput"
       },
-      "CreateTranscriptEntryBody": {
+      "CreateTranscriptEntryInput": {
         "properties": {
           "audio_files": {
             "items": {
@@ -919,7 +919,7 @@
           }
         },
         "type": "object",
-        "title": "CreateTranscriptEntryBody"
+        "title": "CreateTranscriptEntryInput"
       },
       "CustomerOut": {
         "properties": {
@@ -1015,10 +1015,10 @@
             "format": "uuid",
             "title": "Id"
           },
-          "client_id": {
+          "customer_id": {
             "type": "string",
             "format": "uuid",
-            "title": "Client Id"
+            "title": "Customer Id"
           },
           "therapist_id": {
             "type": "integer",
@@ -1080,7 +1080,7 @@
         "type": "object",
         "required": [
           "id",
-          "client_id",
+          "customer_id",
           "therapist_id",
           "date",
           "session_number",
@@ -1149,7 +1149,7 @@
         ],
         "title": "TranscriptEntryOut"
       },
-      "UpdateCustomerBody": {
+      "UpdateCustomerInput": {
         "properties": {
           "name": {
             "anyOf": [
@@ -1198,12 +1198,20 @@
           }
         },
         "type": "object",
-        "title": "UpdateCustomerBody"
+        "title": "UpdateCustomerInput"
       },
-      "UpdateSessionBody": {
+      "UpdateSessionInput": {
         "properties": {
           "date": {
-            "type": "null",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Date"
           },
           "duration_minutes": {
@@ -1241,9 +1249,9 @@
           }
         },
         "type": "object",
-        "title": "UpdateSessionBody"
+        "title": "UpdateSessionInput"
       },
-      "UpdateTranscriptEntryBody": {
+      "UpdateTranscriptEntryInput": {
         "properties": {
           "status": {
             "anyOf": [
@@ -1283,7 +1291,7 @@
           }
         },
         "type": "object",
-        "title": "UpdateTranscriptEntryBody"
+        "title": "UpdateTranscriptEntryInput"
       },
       "ValidationError": {
         "properties": {

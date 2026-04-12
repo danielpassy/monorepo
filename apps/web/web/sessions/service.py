@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date as Date
+from datetime import datetime, timezone
 
 from pydantic import BaseModel
 from sqlalchemy import func, select
@@ -18,13 +21,13 @@ class TranscriptEntryNotFoundError(Exception):
 
 
 class CreateSessionInput(BaseModel):
-    date: date
+    date: Date
     duration_minutes: int | None = None
     notes: str | None = None
 
 
 class UpdateSessionInput(BaseModel):
-    date: date | None = None
+    date: Date | None = None
     duration_minutes: int | None = None
     notes: str | None = None
     summary: str | None = None
