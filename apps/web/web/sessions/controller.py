@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from web.customers.service import CustomerNotFoundError
 from web.db import get_session as db_session
 from web.sessions import service
+from web.sessions.model import TranscriptEntryStatus
 from web.sessions.service import (
     CreateSessionInput,
     CreateTranscriptEntryInput,
@@ -39,7 +40,7 @@ class SessionOut(BaseModel):
 class TranscriptEntryOut(BaseModel):
     id: uuid.UUID
     session_id: uuid.UUID
-    status: str
+    status: TranscriptEntryStatus
     audio_files: list[str]
     transcript: Optional[str]
     created_at: datetime
@@ -54,9 +55,11 @@ class TranscriptEntryOut(BaseModel):
 @router.get("/customers/{customer_id}/sessions", response_model=list[SessionOut])
 async def list_sessions(
     customer_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(db_session),
 ) -> list[SessionOut]:
-    sessions = await service.list_sessions(db, customer_id)
+    therapist_id = request.state.user["user_id"]
+    sessions = await service.list_sessions(db, customer_id, therapist_id)
     return [SessionOut.model_validate(s) for s in sessions]
 
 
@@ -69,9 +72,9 @@ async def create_session(
     request: Request,
     db: AsyncSession = Depends(db_session),
 ) -> SessionOut:
-    user = request.state.user
+    therapist_id = request.state.user["user_id"]
     try:
-        session = await service.create_session(db, customer_id, user["user_id"], body)
+        session = await service.create_session(db, customer_id, therapist_id, body)
     except CustomerNotFoundError:
         raise HTTPException(status_code=404, detail="customer not found")
     return SessionOut.model_validate(session)
@@ -80,10 +83,12 @@ async def create_session(
 @router.get("/sessions/{session_id}", response_model=SessionOut)
 async def get_session(
     session_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(db_session),
 ) -> SessionOut:
+    therapist_id = request.state.user["user_id"]
     try:
-        session = await service.get_session(db, session_id)
+        session = await service.get_session(db, session_id, therapist_id)
     except SessionNotFoundError:
         raise HTTPException(status_code=404, detail="session not found")
     return SessionOut.model_validate(session)
@@ -93,10 +98,12 @@ async def get_session(
 async def update_session(
     session_id: uuid.UUID,
     body: UpdateSessionInput,
+    request: Request,
     db: AsyncSession = Depends(db_session),
 ) -> SessionOut:
+    therapist_id = request.state.user["user_id"]
     try:
-        session = await service.update_session(db, session_id, body)
+        session = await service.update_session(db, session_id, therapist_id, body)
     except SessionNotFoundError:
         raise HTTPException(status_code=404, detail="session not found")
     return SessionOut.model_validate(session)
@@ -105,10 +112,12 @@ async def update_session(
 @router.delete("/sessions/{session_id}", status_code=204)
 async def delete_session(
     session_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(db_session),
 ) -> None:
+    therapist_id = request.state.user["user_id"]
     try:
-        await service.delete_session(db, session_id)
+        await service.delete_session(db, session_id, therapist_id)
     except SessionNotFoundError:
         raise HTTPException(status_code=404, detail="session not found")
 
@@ -119,10 +128,12 @@ async def delete_session(
 @router.post("/sessions/{session_id}/summary/generate", response_model=SessionOut)
 async def generate_summary(
     session_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(db_session),
 ) -> SessionOut:
+    therapist_id = request.state.user["user_id"]
     try:
-        session = await service.generate_session_summary(db, session_id)
+        session = await service.generate_session_summary(db, session_id, therapist_id)
     except SessionNotFoundError:
         raise HTTPException(status_code=404, detail="session not found")
     return SessionOut.model_validate(session)
@@ -137,9 +148,14 @@ async def generate_summary(
 )
 async def list_transcript_entries(
     session_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(db_session),
 ) -> list[TranscriptEntryOut]:
-    entries = await service.list_transcript_entries(db, session_id)
+    therapist_id = request.state.user["user_id"]
+    try:
+        entries = await service.list_transcript_entries(db, session_id, therapist_id)
+    except SessionNotFoundError:
+        raise HTTPException(status_code=404, detail="session not found")
     return [TranscriptEntryOut.model_validate(e) for e in entries]
 
 
@@ -151,10 +167,14 @@ async def list_transcript_entries(
 async def create_transcript_entry(
     session_id: uuid.UUID,
     body: CreateTranscriptEntryInput,
+    request: Request,
     db: AsyncSession = Depends(db_session),
 ) -> TranscriptEntryOut:
+    therapist_id = request.state.user["user_id"]
     try:
-        entry = await service.create_transcript_entry(db, session_id, body)
+        entry = await service.create_transcript_entry(
+            db, session_id, therapist_id, body
+        )
     except SessionNotFoundError:
         raise HTTPException(status_code=404, detail="session not found")
     return TranscriptEntryOut.model_validate(entry)
@@ -163,10 +183,12 @@ async def create_transcript_entry(
 @router.get("/session-transcript-entries/{entry_id}", response_model=TranscriptEntryOut)
 async def get_transcript_entry(
     entry_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(db_session),
 ) -> TranscriptEntryOut:
+    therapist_id = request.state.user["user_id"]
     try:
-        entry = await service.get_transcript_entry(db, entry_id)
+        entry = await service.get_transcript_entry(db, entry_id, therapist_id)
     except TranscriptEntryNotFoundError:
         raise HTTPException(status_code=404, detail="transcript entry not found")
     return TranscriptEntryOut.model_validate(entry)
@@ -178,10 +200,12 @@ async def get_transcript_entry(
 async def update_transcript_entry(
     entry_id: uuid.UUID,
     body: UpdateTranscriptEntryInput,
+    request: Request,
     db: AsyncSession = Depends(db_session),
 ) -> TranscriptEntryOut:
+    therapist_id = request.state.user["user_id"]
     try:
-        entry = await service.update_transcript_entry(db, entry_id, body)
+        entry = await service.update_transcript_entry(db, entry_id, therapist_id, body)
     except TranscriptEntryNotFoundError:
         raise HTTPException(status_code=404, detail="transcript entry not found")
     return TranscriptEntryOut.model_validate(entry)

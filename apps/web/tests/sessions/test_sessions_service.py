@@ -1,5 +1,7 @@
 import datetime
 
+import pytest
+
 from web.auth.model import User
 from web.customers import service as customer_service
 from web.customers.service import CreateCustomerInput
@@ -8,14 +10,20 @@ from web.sessions.service import (
     CreateSessionInput,
     CreateTranscriptEntryInput,
     SessionNotFoundError,
+    UpdateTranscriptEntryInput,
     generate_session_summary,
+    update_transcript_entry,
 )
-import pytest
 
 
 async def _setup(db_session):
+    user = User(email="svc@example.com", name="Svc User", google_id="g-svc-test")
+    db_session.add(user)
+    await db_session.commit()
+
     customer = await customer_service.create_customer(
         db_session,
+        user.id,
         CreateCustomerInput(
             name="Service Test Customer",
             email=None,
@@ -23,9 +31,6 @@ async def _setup(db_session):
             start_date=datetime.date(2024, 1, 1),
         ),
     )
-    user = User(email="svc@example.com", name="Svc User", google_id="g-svc-test")
-    db_session.add(user)
-    await db_session.commit()
     return customer, user
 
 
@@ -58,13 +63,13 @@ async def test_delete_session_cascades_transcript_entries(db_session) -> None:
         CreateSessionInput(date=datetime.date(2024, 1, 1)),
     )
     await session_service.create_transcript_entry(
-        db_session, session.id, CreateTranscriptEntryInput(audio_files=[])
+        db_session, session.id, user.id, CreateTranscriptEntryInput(audio_files=[])
     )
 
-    await session_service.delete_session(db_session, session.id)
+    await session_service.delete_session(db_session, session.id, user.id)
 
     with pytest.raises(SessionNotFoundError):
-        await session_service.get_session(db_session, session.id)
+        await session_service.get_session(db_session, session.id, user.id)
 
 
 async def test_generate_summary_uses_notes_and_transcripts(db_session) -> None:
@@ -78,19 +83,19 @@ async def test_generate_summary_uses_notes_and_transcripts(db_session) -> None:
         ),
     )
     entry = await session_service.create_transcript_entry(
-        db_session, session.id, CreateTranscriptEntryInput(audio_files=[])
+        db_session, session.id, user.id, CreateTranscriptEntryInput(audio_files=[])
     )
-    from web.sessions.service import UpdateTranscriptEntryInput, update_transcript_entry
 
     await update_transcript_entry(
         db_session,
         entry.id,
+        user.id,
         UpdateTranscriptEntryInput(
             status="processed", transcript="Patient said hello."
         ),
     )
 
-    updated = await generate_session_summary(db_session, session.id)
+    updated = await generate_session_summary(db_session, session.id, user.id)
 
     assert updated.summary is not None
     assert "Clinical notes here." in updated.summary
@@ -106,16 +111,18 @@ async def test_update_transcript_entry_updates_status(db_session) -> None:
         CreateSessionInput(date=datetime.date(2024, 1, 1)),
     )
     entry = await session_service.create_transcript_entry(
-        db_session, session.id, CreateTranscriptEntryInput(audio_files=["a.wav"])
+        db_session,
+        session.id,
+        user.id,
+        CreateTranscriptEntryInput(audio_files=["a.wav"]),
     )
-
-    from web.sessions.service import UpdateTranscriptEntryInput, update_transcript_entry
 
     updated = await update_transcript_entry(
         db_session,
         entry.id,
-        UpdateTranscriptEntryInput(status="processing"),
+        user.id,
+        UpdateTranscriptEntryInput(status="processed"),
     )
 
-    assert updated.status == "processing"
+    assert updated.status == "processed"
     assert updated.audio_files == ["a.wav"]

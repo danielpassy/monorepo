@@ -22,9 +22,11 @@ async def test_create_customer_returns_201(authed_client) -> None:
     assert "id" in data
 
 
-async def test_get_customer_returns_200(authed_client, db_session) -> None:
+async def test_get_customer_returns_200(authed_client, authed_user, db_session) -> None:
+    user, _ = authed_user
     customer = await customer_service.create_customer(
         db_session,
+        user.id,
         CreateCustomerInput(
             name="Bia Costa",
             email=None,
@@ -44,9 +46,13 @@ async def test_get_customer_returns_404_for_missing(authed_client) -> None:
     assert response.status_code == 404
 
 
-async def test_patch_customer_updates_name(authed_client, db_session) -> None:
+async def test_patch_customer_updates_name(
+    authed_client, authed_user, db_session
+) -> None:
+    user, _ = authed_user
     customer = await customer_service.create_customer(
         db_session,
+        user.id,
         CreateCustomerInput(
             name="Old Name",
             email=None,
@@ -61,9 +67,13 @@ async def test_patch_customer_updates_name(authed_client, db_session) -> None:
     assert response.json()["name"] == "New Name"
 
 
-async def test_delete_customer_returns_204(authed_client, db_session) -> None:
+async def test_delete_customer_returns_204(
+    authed_client, authed_user, db_session
+) -> None:
+    user, _ = authed_user
     customer = await customer_service.create_customer(
         db_session,
+        user.id,
         CreateCustomerInput(
             name="To Delete",
             email=None,
@@ -75,12 +85,16 @@ async def test_delete_customer_returns_204(authed_client, db_session) -> None:
     assert response.status_code == 204
 
 
-async def test_delete_customer_cascades_sessions(authed_client, db_session) -> None:
+async def test_delete_customer_cascades_sessions(
+    authed_client, authed_user, db_session
+) -> None:
     from web.sessions import service as session_service
     from web.sessions.service import CreateSessionInput
 
+    user, _ = authed_user
     customer = await customer_service.create_customer(
         db_session,
+        user.id,
         CreateCustomerInput(
             name="With Sessions",
             email=None,
@@ -88,11 +102,6 @@ async def test_delete_customer_cascades_sessions(authed_client, db_session) -> N
             start_date=datetime.date(2024, 1, 1),
         ),
     )
-    from web.auth.model import User
-
-    user = User(email="cascade@example.com", name="Cascade User", google_id="g-cascade")
-    db_session.add(user)
-    await db_session.commit()
 
     await session_service.create_session(
         db_session,
@@ -104,5 +113,5 @@ async def test_delete_customer_cascades_sessions(authed_client, db_session) -> N
     response = await authed_client.delete(f"/customers/{customer.id}")
     assert response.status_code == 204
 
-    sessions = await session_service.list_sessions(db_session, customer.id)
+    sessions = await session_service.list_sessions(db_session, customer.id, user.id)
     assert sessions == []

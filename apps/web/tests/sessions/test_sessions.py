@@ -1,15 +1,15 @@
 import datetime
 
-from web.auth.model import User
 from web.customers import service as customer_service
 from web.customers.service import CreateCustomerInput
 from web.sessions import service as session_service
 from web.sessions.service import CreateSessionInput, CreateTranscriptEntryInput
 
 
-async def _make_customer(db_session):
+async def _make_customer(db_session, therapist_id):
     return await customer_service.create_customer(
         db_session,
+        therapist_id,
         CreateCustomerInput(
             name="Test Customer",
             email=None,
@@ -19,19 +19,11 @@ async def _make_customer(db_session):
     )
 
 
-async def _make_user(db_session):
-    user = User(
-        email="therapist@example.com",
-        name="Therapist",
-        google_id="g-therapist-sessions",
-    )
-    db_session.add(user)
-    await db_session.commit()
-    return user
-
-
-async def test_create_session_assigns_session_number(authed_client, db_session) -> None:
-    customer = await _make_customer(db_session)
+async def test_create_session_assigns_session_number(
+    authed_client, authed_user, db_session
+) -> None:
+    user, _ = authed_user
+    customer = await _make_customer(db_session, user.id)
     response = await authed_client.post(
         f"/customers/{customer.id}/sessions",
         json={"date": "2024-06-01"},
@@ -41,10 +33,10 @@ async def test_create_session_assigns_session_number(authed_client, db_session) 
 
 
 async def test_create_session_increments_session_number(
-    authed_client, db_session
+    authed_client, authed_user, db_session
 ) -> None:
-    customer = await _make_customer(db_session)
-    user = await _make_user(db_session)
+    user, _ = authed_user
+    customer = await _make_customer(db_session, user.id)
 
     await session_service.create_session(
         db_session,
@@ -61,9 +53,11 @@ async def test_create_session_increments_session_number(
     assert response.json()["session_number"] == 2
 
 
-async def test_list_sessions_ordered_by_number_desc(authed_client, db_session) -> None:
-    customer = await _make_customer(db_session)
-    user = await _make_user(db_session)
+async def test_list_sessions_ordered_by_number_desc(
+    authed_client, authed_user, db_session
+) -> None:
+    user, _ = authed_user
+    customer = await _make_customer(db_session, user.id)
 
     for day in [1, 8, 15]:
         await session_service.create_session(
@@ -84,9 +78,11 @@ async def test_get_session_returns_404_for_missing(authed_client) -> None:
     assert response.status_code == 404
 
 
-async def test_patch_session_updates_notes(authed_client, db_session) -> None:
-    customer = await _make_customer(db_session)
-    user = await _make_user(db_session)
+async def test_patch_session_updates_notes(
+    authed_client, authed_user, db_session
+) -> None:
+    user, _ = authed_user
+    customer = await _make_customer(db_session, user.id)
     session = await session_service.create_session(
         db_session,
         customer.id,
@@ -101,9 +97,11 @@ async def test_patch_session_updates_notes(authed_client, db_session) -> None:
     assert response.json()["notes"] == "Updated notes"
 
 
-async def test_delete_session_returns_204(authed_client, db_session) -> None:
-    customer = await _make_customer(db_session)
-    user = await _make_user(db_session)
+async def test_delete_session_returns_204(
+    authed_client, authed_user, db_session
+) -> None:
+    user, _ = authed_user
+    customer = await _make_customer(db_session, user.id)
     session = await session_service.create_session(
         db_session,
         customer.id,
@@ -115,9 +113,11 @@ async def test_delete_session_returns_204(authed_client, db_session) -> None:
     assert response.status_code == 204
 
 
-async def test_generate_summary_from_notes(authed_client, db_session) -> None:
-    customer = await _make_customer(db_session)
-    user = await _make_user(db_session)
+async def test_generate_summary_from_notes(
+    authed_client, authed_user, db_session
+) -> None:
+    user, _ = authed_user
+    customer = await _make_customer(db_session, user.id)
     session = await session_service.create_session(
         db_session,
         customer.id,
@@ -133,9 +133,11 @@ async def test_generate_summary_from_notes(authed_client, db_session) -> None:
     assert "Important clinical notes." in response.json()["summary"]
 
 
-async def test_create_transcript_entry_returns_201(authed_client, db_session) -> None:
-    customer = await _make_customer(db_session)
-    user = await _make_user(db_session)
+async def test_create_transcript_entry_returns_201(
+    authed_client, authed_user, db_session
+) -> None:
+    user, _ = authed_user
+    customer = await _make_customer(db_session, user.id)
     session = await session_service.create_session(
         db_session,
         customer.id,
@@ -153,9 +155,9 @@ async def test_create_transcript_entry_returns_201(authed_client, db_session) ->
     assert data["audio_files"] == ["file1.wav"]
 
 
-async def test_list_transcript_entries(authed_client, db_session) -> None:
-    customer = await _make_customer(db_session)
-    user = await _make_user(db_session)
+async def test_list_transcript_entries(authed_client, authed_user, db_session) -> None:
+    user, _ = authed_user
+    customer = await _make_customer(db_session, user.id)
     session = await session_service.create_session(
         db_session,
         customer.id,
@@ -163,7 +165,7 @@ async def test_list_transcript_entries(authed_client, db_session) -> None:
         CreateSessionInput(date=datetime.date(2024, 6, 1)),
     )
     await session_service.create_transcript_entry(
-        db_session, session.id, CreateTranscriptEntryInput(audio_files=[])
+        db_session, session.id, user.id, CreateTranscriptEntryInput(audio_files=[])
     )
 
     response = await authed_client.get(f"/sessions/{session.id}/transcript-entries")
@@ -171,9 +173,11 @@ async def test_list_transcript_entries(authed_client, db_session) -> None:
     assert len(response.json()) == 1
 
 
-async def test_patch_transcript_entry_updates_status(authed_client, db_session) -> None:
-    customer = await _make_customer(db_session)
-    user = await _make_user(db_session)
+async def test_patch_transcript_entry_updates_status(
+    authed_client, authed_user, db_session
+) -> None:
+    user, _ = authed_user
+    customer = await _make_customer(db_session, user.id)
     session = await session_service.create_session(
         db_session,
         customer.id,
@@ -181,13 +185,12 @@ async def test_patch_transcript_entry_updates_status(authed_client, db_session) 
         CreateSessionInput(date=datetime.date(2024, 6, 1)),
     )
     entry = await session_service.create_transcript_entry(
-        db_session, session.id, CreateTranscriptEntryInput(audio_files=[])
+        db_session, session.id, user.id, CreateTranscriptEntryInput(audio_files=[])
     )
 
     response = await authed_client.patch(
         f"/session-transcript-entries/{entry.id}",
         json={"status": "processed", "transcript": "Hello world."},
-        params={"session_id": str(session.id)},
     )
     assert response.status_code == 200
     assert response.json()["status"] == "processed"

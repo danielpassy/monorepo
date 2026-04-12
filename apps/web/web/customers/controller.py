@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -31,28 +31,34 @@ class CustomerOut(BaseModel):
 
 @router.get("", response_model=list[CustomerOut])
 async def list_customers(
+    request: Request,
     db: AsyncSession = Depends(get_session),
 ) -> list[CustomerOut]:
-    customers = await service.list_customers(db)
+    therapist_id = request.state.user["user_id"]
+    customers = await service.list_customers(db, therapist_id)
     return [CustomerOut.model_validate(c) for c in customers]
 
 
 @router.post("", response_model=CustomerOut, status_code=201)
 async def create_customer(
     body: CreateCustomerInput,
+    request: Request,
     db: AsyncSession = Depends(get_session),
 ) -> CustomerOut:
-    customer = await service.create_customer(db, body)
+    therapist_id = request.state.user["user_id"]
+    customer = await service.create_customer(db, therapist_id, body)
     return CustomerOut.model_validate(customer)
 
 
 @router.get("/{customer_id}", response_model=CustomerOut)
 async def get_customer(
     customer_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(get_session),
 ) -> CustomerOut:
+    therapist_id = request.state.user["user_id"]
     try:
-        customer = await service.get_customer(db, customer_id)
+        customer = await service.get_customer(db, customer_id, therapist_id)
     except CustomerNotFoundError:
         raise HTTPException(status_code=404, detail="customer not found")
     return CustomerOut.model_validate(customer)
@@ -62,10 +68,12 @@ async def get_customer(
 async def update_customer(
     customer_id: uuid.UUID,
     body: UpdateCustomerInput,
+    request: Request,
     db: AsyncSession = Depends(get_session),
 ) -> CustomerOut:
+    therapist_id = request.state.user["user_id"]
     try:
-        customer = await service.update_customer(db, customer_id, body)
+        customer = await service.update_customer(db, customer_id, therapist_id, body)
     except CustomerNotFoundError:
         raise HTTPException(status_code=404, detail="customer not found")
     return CustomerOut.model_validate(customer)
@@ -74,9 +82,11 @@ async def update_customer(
 @router.delete("/{customer_id}", status_code=204)
 async def delete_customer(
     customer_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(get_session),
 ) -> None:
+    therapist_id = request.state.user["user_id"]
     try:
-        await service.delete_customer(db, customer_id)
+        await service.delete_customer(db, customer_id, therapist_id)
     except CustomerNotFoundError:
         raise HTTPException(status_code=404, detail="customer not found")

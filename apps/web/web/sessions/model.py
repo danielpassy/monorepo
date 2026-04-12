@@ -1,9 +1,11 @@
+import enum
 import uuid
 from datetime import date, datetime
 
 from sqlalchemy import (
     Date,
     DateTime,
+    Enum,
     ForeignKey,
     Index,
     Integer,
@@ -15,6 +17,11 @@ from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from web.models.base import Base
+
+
+class TranscriptEntryStatus(str, enum.Enum):
+    waiting_to_be_processed = "waiting_to_be_processed"
+    processed = "processed"
 
 
 class Session(Base):
@@ -74,8 +81,10 @@ class SessionTranscriptEntry(Base):
         ForeignKey("sessions.id", ondelete="CASCADE"),
         nullable=False,
     )
-    status: Mapped[str] = mapped_column(
-        Text, nullable=False, default="waiting_to_be_processed"
+    status: Mapped[TranscriptEntryStatus] = mapped_column(
+        Enum(TranscriptEntryStatus, name="transcriptentrystatus"),
+        nullable=False,
+        default=TranscriptEntryStatus.waiting_to_be_processed,
     )
     audio_files: Mapped[list[str]] = mapped_column(
         ARRAY(Text), nullable=False, server_default="{}"

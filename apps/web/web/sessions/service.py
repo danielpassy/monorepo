@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from web.customers.service import get_customer
-from web.sessions.model import Session, SessionTranscriptEntry
+from web.sessions.model import Session, SessionTranscriptEntry, TranscriptEntryStatus
 
 
 class SessionNotFoundError(Exception):
@@ -38,15 +38,17 @@ class CreateTranscriptEntryInput(BaseModel):
 
 
 class UpdateTranscriptEntryInput(BaseModel):
-    status: str | None = None
+    status: TranscriptEntryStatus | None = None
     audio_files: list[str] | None = None
     transcript: str | None = None
 
 
-async def list_sessions(db: AsyncSession, customer_id: uuid.UUID) -> list[Session]:
+async def list_sessions(
+    db: AsyncSession, customer_id: uuid.UUID, therapist_id: int
+) -> list[Session]:
     result = await db.execute(
         select(Session)
-        .where(Session.customer_id == customer_id)
+        .where(Session.customer_id == customer_id, Session.therapist_id == therapist_id)
         .order_by(Session.session_number.desc())
     )
     return list(result.scalars().all())
@@ -58,7 +60,7 @@ async def create_session(
     therapist_id: int,
     data: CreateSessionInput,
 ) -> Session:
-    await get_customer(db, customer_id)
+    await get_customer(db, customer_id, therapist_id)
 
     result = await db.execute(
         select(func.max(Session.session_number)).where(
@@ -81,8 +83,16 @@ async def create_session(
     return session
 
 
-async def get_session(db: AsyncSession, session_id: uuid.UUID) -> Session:
-    session = await db.get(Session, session_id)
+async def get_session(
+    db: AsyncSession, session_id: uuid.UUID, therapist_id: int
+) -> Session:
+    result = await db.execute(
+        select(Session).where(
+            Session.id == session_id,
+            Session.therapist_id == therapist_id,
+        )
+    )
+    session = result.scalar_one_or_none()
     if session is None:
         raise SessionNotFoundError(session_id)
     return session
@@ -91,9 +101,10 @@ async def get_session(db: AsyncSession, session_id: uuid.UUID) -> Session:
 async def update_session(
     db: AsyncSession,
     session_id: uuid.UUID,
+    therapist_id: int,
     data: UpdateSessionInput,
 ) -> Session:
-    session = await get_session(db, session_id)
+    session = await get_session(db, session_id, therapist_id)
     for field in data.model_fields_set:
         setattr(session, field, getattr(data, field))
     session.updated_at = datetime.now(timezone.utc)
@@ -102,8 +113,10 @@ async def update_session(
     return session
 
 
-async def delete_session(db: AsyncSession, session_id: uuid.UUID) -> None:
-    session = await get_session(db, session_id)
+async def delete_session(
+    db: AsyncSession, session_id: uuid.UUID, therapist_id: int
+) -> None:
+    session = await get_session(db, session_id, therapist_id)
     await db.delete(session)
     await db.commit()
 
@@ -111,7 +124,9 @@ async def delete_session(db: AsyncSession, session_id: uuid.UUID) -> None:
 async def list_transcript_entries(
     db: AsyncSession,
     session_id: uuid.UUID,
+    therapist_id: int,
 ) -> list[SessionTranscriptEntry]:
+    await get_session(db, session_id, therapist_id)
     result = await db.execute(
         select(SessionTranscriptEntry)
         .where(SessionTranscriptEntry.session_id == session_id)
@@ -123,13 +138,14 @@ async def list_transcript_entries(
 async def create_transcript_entry(
     db: AsyncSession,
     session_id: uuid.UUID,
+    therapist_id: int,
     data: CreateTranscriptEntryInput,
 ) -> SessionTranscriptEntry:
-    await get_session(db, session_id)
+    await get_session(db, session_id, therapist_id)
 
     entry = SessionTranscriptEntry(
         session_id=session_id,
-        status="waiting_to_be_processed",
+        status=TranscriptEntryStatus.waiting_to_be_processed,
         audio_files=data.audio_files,
     )
     db.add(entry)
@@ -139,9 +155,17 @@ async def create_transcript_entry(
 
 
 async def get_transcript_entry(
-    db: AsyncSession, entry_id: uuid.UUID
+    db: AsyncSession, entry_id: uuid.UUID, therapist_id: int
 ) -> SessionTranscriptEntry:
-    entry = await db.get(SessionTranscriptEntry, entry_id)
+    result = await db.execute(
+        select(SessionTranscriptEntry)
+        .join(Session, Session.id == SessionTranscriptEntry.session_id)
+        .where(
+            SessionTranscriptEntry.id == entry_id,
+            Session.therapist_id == therapist_id,
+        )
+    )
+    entry = result.scalar_one_or_none()
     if entry is None:
         raise TranscriptEntryNotFoundError(entry_id)
     return entry
@@ -150,9 +174,10 @@ async def get_transcript_entry(
 async def update_transcript_entry(
     db: AsyncSession,
     entry_id: uuid.UUID,
+    therapist_id: int,
     data: UpdateTranscriptEntryInput,
 ) -> SessionTranscriptEntry:
-    entry = await get_transcript_entry(db, entry_id)
+    entry = await get_transcript_entry(db, entry_id, therapist_id)
     for field in data.model_fields_set:
         setattr(entry, field, getattr(data, field))
     entry.updated_at = datetime.now(timezone.utc)
@@ -161,15 +186,21 @@ async def update_transcript_entry(
     return entry
 
 
-async def generate_session_summary(db: AsyncSession, session_id: uuid.UUID) -> Session:
-    session = await get_session(db, session_id)
-    entries = await list_transcript_entries(db, session_id)
+async def generate_session_summary(
+    db: AsyncSession, session_id: uuid.UUID, therapist_id: int
+) -> Session:
+    session = await get_session(db, session_id, therapist_id)
+    entries = await list_transcript_entries(db, session_id, therapist_id)
 
     parts: list[str] = []
     if session.notes:
         parts.append(f"Notas clínicas:\n{session.notes}")
 
-    processed = [e for e in entries if e.status == "processed" and e.transcript]
+    processed = [
+        e
+        for e in entries
+        if e.status == TranscriptEntryStatus.processed and e.transcript
+    ]
     if processed:
         transcript_text = "\n\n".join(e.transcript for e in processed if e.transcript)
         parts.append(f"Transcrição:\n{transcript_text}")

@@ -123,8 +123,8 @@ async def client(db_session, redis):
 
 
 @pytest_asyncio.fixture
-async def authed_client(db_session, redis):
-    """AsyncClient pre-loaded with a valid session cookie."""
+async def authed_user(db_session, redis):
+    """Creates the test user and returns (user, signed_cookie)."""
     from web.auth.model import User
     from web.settings import get_settings
 
@@ -135,6 +135,16 @@ async def authed_client(db_session, redis):
 
     session_id = await auth_service.create_session(redis, user)
     signed = auth_service.sign_session_id(session_id, settings.secret_key)
+    return user, signed
+
+
+@pytest_asyncio.fixture
+async def authed_client(authed_user, db_session, redis):
+    """AsyncClient pre-loaded with a valid session cookie."""
+    from web.settings import get_settings
+
+    settings = get_settings()
+    _, signed = authed_user
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
