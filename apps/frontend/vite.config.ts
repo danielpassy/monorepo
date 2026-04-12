@@ -4,6 +4,9 @@ import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
+  fmt: {
+    ignorePatterns: ["src/api/generated/**"],
+  },
   staged: {
     "*": "vp check --fix",
   },
