@@ -1,17 +1,17 @@
 import datetime
 
 from web.auth.model import User
-from web.clients import service as client_service
-from web.clients.service import CreateClientInput
+from web.customers import service as customer_service
+from web.customers.service import CreateCustomerInput
 from web.sessions import service as session_service
 from web.sessions.service import CreateSessionInput, CreateTranscriptEntryInput
 
 
-async def _make_client(db_session):
-    return await client_service.create_client(
+async def _make_customer(db_session):
+    return await customer_service.create_customer(
         db_session,
-        CreateClientInput(
-            name="Test Client",
+        CreateCustomerInput(
+            name="Test Customer",
             email=None,
             phone=None,
             start_date=datetime.date(2024, 1, 1),
@@ -31,9 +31,9 @@ async def _make_user(db_session):
 
 
 async def test_create_session_assigns_session_number(authed_client, db_session) -> None:
-    client = await _make_client(db_session)
+    customer = await _make_customer(db_session)
     response = await authed_client.post(
-        f"/clients/{client.id}/sessions",
+        f"/customers/{customer.id}/sessions",
         json={"date": "2024-06-01"},
     )
     assert response.status_code == 201
@@ -43,18 +43,18 @@ async def test_create_session_assigns_session_number(authed_client, db_session) 
 async def test_create_session_increments_session_number(
     authed_client, db_session
 ) -> None:
-    client = await _make_client(db_session)
+    customer = await _make_customer(db_session)
     user = await _make_user(db_session)
 
     await session_service.create_session(
         db_session,
-        client.id,
+        customer.id,
         user.id,
         CreateSessionInput(date=datetime.date(2024, 6, 1)),
     )
 
     response = await authed_client.post(
-        f"/clients/{client.id}/sessions",
+        f"/customers/{customer.id}/sessions",
         json={"date": "2024-06-08"},
     )
     assert response.status_code == 201
@@ -62,18 +62,18 @@ async def test_create_session_increments_session_number(
 
 
 async def test_list_sessions_ordered_by_number_desc(authed_client, db_session) -> None:
-    client = await _make_client(db_session)
+    customer = await _make_customer(db_session)
     user = await _make_user(db_session)
 
     for day in [1, 8, 15]:
         await session_service.create_session(
             db_session,
-            client.id,
+            customer.id,
             user.id,
             CreateSessionInput(date=datetime.date(2024, 6, day)),
         )
 
-    response = await authed_client.get(f"/clients/{client.id}/sessions")
+    response = await authed_client.get(f"/customers/{customer.id}/sessions")
     assert response.status_code == 200
     numbers = [s["session_number"] for s in response.json()]
     assert numbers == sorted(numbers, reverse=True)
@@ -85,11 +85,11 @@ async def test_get_session_returns_404_for_missing(authed_client) -> None:
 
 
 async def test_patch_session_updates_notes(authed_client, db_session) -> None:
-    client = await _make_client(db_session)
+    customer = await _make_customer(db_session)
     user = await _make_user(db_session)
     session = await session_service.create_session(
         db_session,
-        client.id,
+        customer.id,
         user.id,
         CreateSessionInput(date=datetime.date(2024, 6, 1)),
     )
@@ -102,11 +102,11 @@ async def test_patch_session_updates_notes(authed_client, db_session) -> None:
 
 
 async def test_delete_session_returns_204(authed_client, db_session) -> None:
-    client = await _make_client(db_session)
+    customer = await _make_customer(db_session)
     user = await _make_user(db_session)
     session = await session_service.create_session(
         db_session,
-        client.id,
+        customer.id,
         user.id,
         CreateSessionInput(date=datetime.date(2024, 6, 1)),
     )
@@ -116,11 +116,11 @@ async def test_delete_session_returns_204(authed_client, db_session) -> None:
 
 
 async def test_generate_summary_from_notes(authed_client, db_session) -> None:
-    client = await _make_client(db_session)
+    customer = await _make_customer(db_session)
     user = await _make_user(db_session)
     session = await session_service.create_session(
         db_session,
-        client.id,
+        customer.id,
         user.id,
         CreateSessionInput(
             date=datetime.date(2024, 6, 1), notes="Important clinical notes."
@@ -134,11 +134,11 @@ async def test_generate_summary_from_notes(authed_client, db_session) -> None:
 
 
 async def test_create_transcript_entry_returns_201(authed_client, db_session) -> None:
-    client = await _make_client(db_session)
+    customer = await _make_customer(db_session)
     user = await _make_user(db_session)
     session = await session_service.create_session(
         db_session,
-        client.id,
+        customer.id,
         user.id,
         CreateSessionInput(date=datetime.date(2024, 6, 1)),
     )
@@ -154,11 +154,11 @@ async def test_create_transcript_entry_returns_201(authed_client, db_session) ->
 
 
 async def test_list_transcript_entries(authed_client, db_session) -> None:
-    client = await _make_client(db_session)
+    customer = await _make_customer(db_session)
     user = await _make_user(db_session)
     session = await session_service.create_session(
         db_session,
-        client.id,
+        customer.id,
         user.id,
         CreateSessionInput(date=datetime.date(2024, 6, 1)),
     )
@@ -172,11 +172,11 @@ async def test_list_transcript_entries(authed_client, db_session) -> None:
 
 
 async def test_patch_transcript_entry_updates_status(authed_client, db_session) -> None:
-    client = await _make_client(db_session)
+    customer = await _make_customer(db_session)
     user = await _make_user(db_session)
     session = await session_service.create_session(
         db_session,
-        client.id,
+        customer.id,
         user.id,
         CreateSessionInput(date=datetime.date(2024, 6, 1)),
     )

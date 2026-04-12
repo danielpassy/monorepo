@@ -5,7 +5,7 @@ import { apiUrl } from "@/settings";
 const mockSessions: SessionOut[] = [
   {
     id: "aaaa0001-0000-0000-0000-000000000000",
-    client_id: "11111111-1111-1111-1111-111111111111",
+    customer_id: "11111111-1111-1111-1111-111111111111",
     therapist_id: 1,
     date: "2023-10-24",
     session_number: 12,
@@ -17,7 +17,7 @@ const mockSessions: SessionOut[] = [
   },
   {
     id: "aaaa0002-0000-0000-0000-000000000000",
-    client_id: "11111111-1111-1111-1111-111111111111",
+    customer_id: "11111111-1111-1111-1111-111111111111",
     therapist_id: 1,
     date: "2023-10-17",
     session_number: 11,
@@ -29,7 +29,7 @@ const mockSessions: SessionOut[] = [
   },
   {
     id: "bbbb0001-0000-0000-0000-000000000000",
-    client_id: "22222222-2222-2222-2222-222222222222",
+    customer_id: "22222222-2222-2222-2222-222222222222",
     therapist_id: 1,
     date: "2023-10-12",
     session_number: 4,
@@ -55,24 +55,24 @@ const mockTranscriptEntries: TranscriptEntryOut[] = [
 ];
 
 export const sessionHandlers = [
-  http.get(apiUrl("/clients/:client_id/sessions"), ({ params }) => {
+  http.get(apiUrl("/customers/:customer_id/sessions"), ({ params }) => {
     const sessions = mockSessions
-      .filter((s) => s.client_id === params.client_id)
+      .filter((s) => s.customer_id === params.customer_id)
       .sort((a, b) => b.session_number - a.session_number);
     return HttpResponse.json(sessions);
   }),
 
-  http.post(apiUrl("/clients/:client_id/sessions"), async ({ params, request }) => {
+  http.post(apiUrl("/customers/:customer_id/sessions"), async ({ params, request }) => {
     const body = (await request.json()) as {
       date: string;
       duration_minutes?: number | null;
       notes?: string | null;
     };
-    const clientSessions = mockSessions.filter((s) => s.client_id === params.client_id);
+    const clientSessions = mockSessions.filter((s) => s.customer_id === params.customer_id);
     const maxNum = clientSessions.reduce((max, s) => Math.max(max, s.session_number), 0);
     const newSession: SessionOut = {
       id: crypto.randomUUID(),
-      client_id: params.client_id as string,
+      customer_id: params.customer_id as string,
       therapist_id: 1,
       date: body.date,
       session_number: maxNum + 1,

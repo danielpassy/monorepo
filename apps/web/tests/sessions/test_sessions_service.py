@@ -1,8 +1,8 @@
 import datetime
 
 from web.auth.model import User
-from web.clients import service as client_service
-from web.clients.service import CreateClientInput
+from web.customers import service as customer_service
+from web.customers.service import CreateCustomerInput
 from web.sessions import service as session_service
 from web.sessions.service import (
     CreateSessionInput,
@@ -14,10 +14,10 @@ import pytest
 
 
 async def _setup(db_session):
-    client = await client_service.create_client(
+    customer = await customer_service.create_customer(
         db_session,
-        CreateClientInput(
-            name="Service Test Client",
+        CreateCustomerInput(
+            name="Service Test Customer",
             email=None,
             phone=None,
             start_date=datetime.date(2024, 1, 1),
@@ -26,21 +26,21 @@ async def _setup(db_session):
     user = User(email="svc@example.com", name="Svc User", google_id="g-svc-test")
     db_session.add(user)
     await db_session.commit()
-    return client, user
+    return customer, user
 
 
 async def test_create_session_calculates_session_number(db_session) -> None:
-    client, user = await _setup(db_session)
+    customer, user = await _setup(db_session)
 
     s1 = await session_service.create_session(
         db_session,
-        client.id,
+        customer.id,
         user.id,
         CreateSessionInput(date=datetime.date(2024, 1, 1)),
     )
     s2 = await session_service.create_session(
         db_session,
-        client.id,
+        customer.id,
         user.id,
         CreateSessionInput(date=datetime.date(2024, 1, 8)),
     )
@@ -50,10 +50,10 @@ async def test_create_session_calculates_session_number(db_session) -> None:
 
 
 async def test_delete_session_cascades_transcript_entries(db_session) -> None:
-    client, user = await _setup(db_session)
+    customer, user = await _setup(db_session)
     session = await session_service.create_session(
         db_session,
-        client.id,
+        customer.id,
         user.id,
         CreateSessionInput(date=datetime.date(2024, 1, 1)),
     )
@@ -68,10 +68,10 @@ async def test_delete_session_cascades_transcript_entries(db_session) -> None:
 
 
 async def test_generate_summary_uses_notes_and_transcripts(db_session) -> None:
-    client, user = await _setup(db_session)
+    customer, user = await _setup(db_session)
     session = await session_service.create_session(
         db_session,
-        client.id,
+        customer.id,
         user.id,
         CreateSessionInput(
             date=datetime.date(2024, 1, 1), notes="Clinical notes here."
@@ -98,10 +98,10 @@ async def test_generate_summary_uses_notes_and_transcripts(db_session) -> None:
 
 
 async def test_update_transcript_entry_updates_status(db_session) -> None:
-    client, user = await _setup(db_session)
+    customer, user = await _setup(db_session)
     session = await session_service.create_session(
         db_session,
-        client.id,
+        customer.id,
         user.id,
         CreateSessionInput(date=datetime.date(2024, 1, 1)),
     )

@@ -78,11 +78,9 @@ jobs:
         run: docker run --rm --network host -e DATABASE_URL -e REDIS_URL ghcr.io/danielpassy/monorepo-web:${{ github.sha }} uv run task test
       - name: Check openapi.json is up to date
         run: |
-          docker run --rm \
-            ghcr.io/danielpassy/monorepo-web:${{ github.sha }} \
-            uv run task export_openapi \
-            > /tmp/openapi.json
-          diff -u apps/web/openapi.json /tmp/openapi.json
+          cp apps/web/openapi.json /tmp/openapi.committed.json
+          cd apps/web && uv run task export_openapi
+          diff -u /tmp/openapi.committed.json apps/web/openapi.json
       - name: Push web image
         if: inputs.event_name == 'push'
         uses: docker/build-push-action@v6

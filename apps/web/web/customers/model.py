@@ -8,8 +8,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from web.models.base import Base
 
 
-class Client(Base):
-    __tablename__ = "clients"
+class Customer(Base):
+    __tablename__ = "customers"
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -29,5 +29,5 @@ class Client(Base):
     )
 
     sessions: Mapped[list["Session"]] = relationship(  # type: ignore[name-defined]  # noqa: F821
-        "Session", back_populates="client", cascade="all, delete-orphan"
+        "Session", back_populates="customer", cascade="all, delete-orphan"
     )

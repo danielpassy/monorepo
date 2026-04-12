@@ -43,6 +43,58 @@
         }
       }
     },
+    "/auth/dev-login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Dev Login",
+        "operationId": "dev_login_auth_dev_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DevLoginBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "type": "object",
+                  "title": "Response Dev Login Auth Dev Login Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/me": {
       "get": {
         "tags": [
@@ -100,13 +152,13 @@
         }
       }
     },
-    "/clients": {
+    "/customers": {
       "get": {
         "tags": [
-          "clients"
+          "customers"
         ],
-        "summary": "List Clients",
-        "operationId": "list_clients_clients_get",
+        "summary": "List Customers",
+        "operationId": "list_customers_customers_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -114,10 +166,10 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/ClientOut"
+                    "$ref": "#/components/schemas/CustomerOut"
                   },
                   "type": "array",
-                  "title": "Response List Clients Clients Get"
+                  "title": "Response List Customers Customers Get"
                 }
               }
             }
@@ -126,15 +178,15 @@
       },
       "post": {
         "tags": [
-          "clients"
+          "customers"
         ],
-        "summary": "Create Client",
-        "operationId": "create_client_clients_post",
+        "summary": "Create Customer",
+        "operationId": "create_customer_customers_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateClientBody"
+                "$ref": "#/components/schemas/CreateCustomerBody"
               }
             }
           },
@@ -146,7 +198,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClientOut"
+                  "$ref": "#/components/schemas/CustomerOut"
                 }
               }
             }
@@ -164,22 +216,22 @@
         }
       }
     },
-    "/clients/{client_id}": {
+    "/customers/{customer_id}": {
       "get": {
         "tags": [
-          "clients"
+          "customers"
         ],
-        "summary": "Get Client",
-        "operationId": "get_client_clients__client_id__get",
+        "summary": "Get Customer",
+        "operationId": "get_customer_customers__customer_id__get",
         "parameters": [
           {
-            "name": "client_id",
+            "name": "customer_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Client Id"
+              "title": "Customer Id"
             }
           }
         ],
@@ -189,7 +241,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClientOut"
+                  "$ref": "#/components/schemas/CustomerOut"
                 }
               }
             }
@@ -208,19 +260,19 @@
       },
       "patch": {
         "tags": [
-          "clients"
+          "customers"
         ],
-        "summary": "Update Client",
-        "operationId": "update_client_clients__client_id__patch",
+        "summary": "Update Customer",
+        "operationId": "update_customer_customers__customer_id__patch",
         "parameters": [
           {
-            "name": "client_id",
+            "name": "customer_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Client Id"
+              "title": "Customer Id"
             }
           }
         ],
@@ -229,7 +281,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateClientBody"
+                "$ref": "#/components/schemas/UpdateCustomerBody"
               }
             }
           }
@@ -240,7 +292,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClientOut"
+                  "$ref": "#/components/schemas/CustomerOut"
                 }
               }
             }
@@ -259,19 +311,19 @@
       },
       "delete": {
         "tags": [
-          "clients"
+          "customers"
         ],
-        "summary": "Delete Client",
-        "operationId": "delete_client_clients__client_id__delete",
+        "summary": "Delete Customer",
+        "operationId": "delete_customer_customers__customer_id__delete",
         "parameters": [
           {
-            "name": "client_id",
+            "name": "customer_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Client Id"
+              "title": "Customer Id"
             }
           }
         ],
@@ -292,22 +344,22 @@
         }
       }
     },
-    "/clients/{client_id}/sessions": {
+    "/customers/{customer_id}/sessions": {
       "get": {
         "tags": [
           "sessions"
         ],
         "summary": "List Sessions",
-        "operationId": "list_sessions_clients__client_id__sessions_get",
+        "operationId": "list_sessions_customers__customer_id__sessions_get",
         "parameters": [
           {
-            "name": "client_id",
+            "name": "customer_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Client Id"
+              "title": "Customer Id"
             }
           }
         ],
@@ -321,7 +373,7 @@
                   "items": {
                     "$ref": "#/components/schemas/SessionOut"
                   },
-                  "title": "Response List Sessions Clients  Client Id  Sessions Get"
+                  "title": "Response List Sessions Customers  Customer Id  Sessions Get"
                 }
               }
             }
@@ -343,16 +395,16 @@
           "sessions"
         ],
         "summary": "Create Session",
-        "operationId": "create_session_clients__client_id__sessions_post",
+        "operationId": "create_session_customers__customer_id__sessions_post",
         "parameters": [
           {
-            "name": "client_id",
+            "name": "customer_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Client Id"
+              "title": "Customer Id"
             }
           }
         ],
@@ -676,16 +728,6 @@
               "format": "uuid",
               "title": "Entry Id"
             }
-          },
-          {
-            "name": "session_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Session Id"
-            }
           }
         ],
         "responses": {
@@ -726,16 +768,6 @@
               "type": "string",
               "format": "uuid",
               "title": "Entry Id"
-            }
-          },
-          {
-            "name": "session_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Session Id"
             }
           }
         ],
@@ -798,7 +830,98 @@
   },
   "components": {
     "schemas": {
-      "ClientOut": {
+      "CreateCustomerBody": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "start_date"
+        ],
+        "title": "CreateCustomerBody"
+      },
+      "CreateSessionBody": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "duration_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Minutes"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date"
+        ],
+        "title": "CreateSessionBody"
+      },
+      "CreateTranscriptEntryBody": {
+        "properties": {
+          "audio_files": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Audio Files",
+            "default": []
+          }
+        },
+        "type": "object",
+        "title": "CreateTranscriptEntryBody"
+      },
+      "CustomerOut": {
         "properties": {
           "id": {
             "type": "string",
@@ -857,98 +980,20 @@
           "created_at",
           "updated_at"
         ],
-        "title": "ClientOut"
+        "title": "CustomerOut"
       },
-      "CreateClientBody": {
+      "DevLoginBody": {
         "properties": {
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
           "email": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Email"
-          },
-          "phone": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phone"
-          },
-          "start_date": {
-            "type": "string",
-            "format": "date",
-            "title": "Start Date"
           }
         },
         "type": "object",
         "required": [
-          "name",
-          "start_date"
+          "email"
         ],
-        "title": "CreateClientBody"
-      },
-      "CreateSessionBody": {
-        "properties": {
-          "date": {
-            "type": "string",
-            "format": "date",
-            "title": "Date"
-          },
-          "duration_minutes": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Duration Minutes"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          }
-        },
-        "type": "object",
-        "required": [
-          "date"
-        ],
-        "title": "CreateSessionBody"
-      },
-      "CreateTranscriptEntryBody": {
-        "properties": {
-          "audio_files": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Audio Files",
-            "default": []
-          }
-        },
-        "type": "object",
-        "title": "CreateTranscriptEntryBody"
+        "title": "DevLoginBody"
       },
       "HTTPValidationError": {
         "properties": {
@@ -1104,7 +1149,7 @@
         ],
         "title": "TranscriptEntryOut"
       },
-      "UpdateClientBody": {
+      "UpdateCustomerBody": {
         "properties": {
           "name": {
             "anyOf": [
@@ -1153,7 +1198,7 @@
           }
         },
         "type": "object",
-        "title": "UpdateClientBody"
+        "title": "UpdateCustomerBody"
       },
       "UpdateSessionBody": {
         "properties": {

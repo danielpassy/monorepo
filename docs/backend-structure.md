@@ -55,11 +55,58 @@
 
 ## Layers
 - **router**: registers routes, groups by domain
-- **controller**: Pydantic input declaration, delegates to service, catches domain exceptions, returns HTTP response
-- **model**: DB table definitions, no business logic
-- **service**: business logic, raises domain exceptions, no HTTP knowledge; simple args as params, complex args as @dataclass
+- **controller**: imports input types from service, owns the response model, delegates to service, catches domain exceptions, returns HTTP response — no business logic, no duplicate input type definitions
+- **model**: declarative SQLAlchemy schema only — columns, relationships, constraints, indexes, server defaults. No business logic, no query/CRUD helpers (those live in service), no serialization (response models live in the controller)
+- **service**: business logic, raises domain exceptions, no HTTP knowledge; owns the input types (`CreateXInput`, `UpdateXInput`) as Pydantic `BaseModel` — controller imports and reuses them directly as FastAPI body params
 - **middleware**: auth
 - **exception handlers** (`add_exception_handler`): ValidationError→400, catch-all→500
+
+## DTO convention
+
+Input types are defined once in the service layer and imported by the controller — no parallel dataclass/Pydantic pair unless the service genuinely needs a different shape than the HTTP input (e.g. computed fields, merged data from multiple sources).
+
+### Create
+`CreateXInput(BaseModel)` — all required fields, optional nullable fields default to `None`.
+
+```python
+# service.py
+class CreateCustomerInput(BaseModel):
+    name: str
+    email: str | None = None
+    start_date: date
+```
+
+Controller uses it directly as the request body param; service receives it as-is.
+
+### Update (PATCH)
+`UpdateXInput(BaseModel)` — all fields optional, defaulting to `None`. Use `model_fields_set` to distinguish "field not sent" from "field explicitly set to null". This is the only correct way to allow clearing nullable columns via PATCH.
+
+```python
+# service.py
+class UpdateCustomerInput(BaseModel):
+    name: str | None = None
+    email: str | None = None  # None can mean "clear this field"
+
+async def update_customer(db, customer_id, data: UpdateCustomerInput):
+    customer = await get_customer(db, customer_id)
+    for field in data.model_fields_set:   # only fields present in the payload
+        setattr(customer, field, getattr(data, field))
+```
+
+### Path args and user identity
+Pass outside the DTO as explicit keyword arguments — path parameters and the authenticated user are not part of the request body and should not be stuffed into the input model.
+
+```python
+# controller
+await service.create_session(db, customer_id=customer_id, therapist_id=request.state.user["user_id"], data=body)
+```
+
+### Internal service-to-service calls
+Skip re-validation with `model_construct()`. Pass `_fields_set` explicitly if the receiving service uses `model_fields_set` for partial-update logic.
+
+```python
+SomeInput.model_construct(name="x", _fields_set={"name"})
+```
 
 ## Request flow
 Request → auth middleware → router → controller (Pydantic validates)

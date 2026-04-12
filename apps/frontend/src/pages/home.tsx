@@ -15,14 +15,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Calendar, Plus, Users } from "lucide-react";
-import { useClients, useCreateClient } from "@/hooks/useClients";
+import { useCustomers, useCreateCustomer } from "@/hooks/useCustomers";
 import { useCreateSession } from "@/hooks/useSessions";
 import { getClientInitials } from "./home.logic";
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { data: clients = [], isLoading } = useClients();
-  const createClient = useCreateClient();
+  const { data: clients = [], isLoading } = useCustomers();
+  const createClient = useCreateCustomer();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newPatientName, setNewPatientName] = useState("");
 
@@ -106,8 +106,8 @@ export default function HomePage() {
                   clientStartDate={client.start_date}
                   onNavigate={(sessionId) =>
                     void navigate({
-                      to: "/clients/$clientId/sessions/$sessionId",
-                      params: { clientId: client.id, sessionId },
+                      to: "/customers/$customerId/sessions/$sessionId",
+                      params: { customerId: client.id, sessionId },
                     })
                   }
                 />

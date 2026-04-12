@@ -33,7 +33,7 @@ asyncio_mode = "auto"
 
 [tool.taskipy.tasks]
 dev = "fastapi dev web/main.py"
-export_openapi = "SECRET_KEY=ci-check python -c \"import json; from web.main import app; print(json.dumps(app.openapi(), indent=2))\""
+export_openapi = "SECRET_KEY=ci-check python -c \"import json; from pathlib import Path; from web.main import app; Path('openapi.json').write_text(json.dumps(app.openapi(), indent=2))\""
 test = "python -m pytest tests/"
 test-project = "python -m pytest tests/test_project_web.py"
 migrate = "alembic -c web/migrations/alembic.ini upgrade head"

@@ -41,7 +41,7 @@ const indexRoute = createRoute({
 
 const sessionRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/clients/$clientId/sessions/$sessionId",
+  path: "/customers/$customerId/sessions/$sessionId",
   component: () => (
     <RouteGuard>
       <SessionPage />

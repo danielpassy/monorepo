@@ -1,13 +1,13 @@
-import type { ClientOut, SessionOut } from "@/api/generated/types.gen";
+import type { CustomerOut, SessionOut } from "@/api/generated/types.gen";
 import { Calendar, Hash } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
-interface ClientHeaderProps {
-  client: ClientOut;
+interface CustomerHeaderProps {
+  customer: CustomerOut;
   session: SessionOut;
 }
 
-export function ClientHeader({ client, session }: ClientHeaderProps) {
+export function CustomerHeader({ customer, session }: CustomerHeaderProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("pt-BR", {
@@ -25,17 +25,17 @@ export function ClientHeader({ client, session }: ClientHeaderProps) {
         </Link>
         <span>/</span>
         <Link
-          to="/clients/$clientId/sessions/$sessionId"
-          params={{ clientId: client.id, sessionId: session.id }}
+          to="/customers/$customerId/sessions/$sessionId"
+          params={{ customerId: customer.id, sessionId: session.id }}
           className="hover:text-foreground"
         >
-          {client.name}
+          {customer.name}
         </Link>
       </div>
 
       <div className="mt-2 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{client.name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{customer.name}</h1>
           <div className="mt-1 flex items-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <Calendar className="size-4" />

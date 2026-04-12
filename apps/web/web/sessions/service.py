@@ -1,11 +1,11 @@
 import uuid
-from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 
+from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from web.clients.service import get_client
+from web.customers.service import get_customer
 from web.sessions.model import Session, SessionTranscriptEntry
 
 
@@ -17,37 +17,33 @@ class TranscriptEntryNotFoundError(Exception):
     pass
 
 
-@dataclass
-class CreateSessionInput:
+class CreateSessionInput(BaseModel):
     date: date
     duration_minutes: int | None = None
     notes: str | None = None
 
 
-@dataclass
-class UpdateSessionInput:
+class UpdateSessionInput(BaseModel):
     date: date | None = None
     duration_minutes: int | None = None
     notes: str | None = None
     summary: str | None = None
 
 
-@dataclass
-class CreateTranscriptEntryInput:
-    audio_files: list[str] = field(default_factory=list)
+class CreateTranscriptEntryInput(BaseModel):
+    audio_files: list[str] = []
 
 
-@dataclass
-class UpdateTranscriptEntryInput:
+class UpdateTranscriptEntryInput(BaseModel):
     status: str | None = None
     audio_files: list[str] | None = None
     transcript: str | None = None
 
 
-async def list_sessions(db: AsyncSession, client_id: uuid.UUID) -> list[Session]:
+async def list_sessions(db: AsyncSession, customer_id: uuid.UUID) -> list[Session]:
     result = await db.execute(
         select(Session)
-        .where(Session.client_id == client_id)
+        .where(Session.customer_id == customer_id)
         .order_by(Session.session_number.desc())
     )
     return list(result.scalars().all())
@@ -55,19 +51,21 @@ async def list_sessions(db: AsyncSession, client_id: uuid.UUID) -> list[Session]
 
 async def create_session(
     db: AsyncSession,
-    client_id: uuid.UUID,
+    customer_id: uuid.UUID,
     therapist_id: int,
     data: CreateSessionInput,
 ) -> Session:
-    await get_client(db, client_id)
+    await get_customer(db, customer_id)
 
     result = await db.execute(
-        select(func.max(Session.session_number)).where(Session.client_id == client_id)
+        select(func.max(Session.session_number)).where(
+            Session.customer_id == customer_id
+        )
     )
     max_num = result.scalar() or 0
 
     session = Session(
-        client_id=client_id,
+        customer_id=customer_id,
         therapist_id=therapist_id,
         date=data.date,
         session_number=max_num + 1,
@@ -93,14 +91,8 @@ async def update_session(
     data: UpdateSessionInput,
 ) -> Session:
     session = await get_session(db, session_id)
-    if data.date is not None:
-        session.date = data.date
-    if data.duration_minutes is not None:
-        session.duration_minutes = data.duration_minutes
-    if data.notes is not None:
-        session.notes = data.notes
-    if data.summary is not None:
-        session.summary = data.summary
+    for field in data.model_fields_set:
+        setattr(session, field, getattr(data, field))
     session.updated_at = datetime.now(timezone.utc)
     await db.commit()
     await db.refresh(session)
@@ -114,7 +106,8 @@ async def delete_session(db: AsyncSession, session_id: uuid.UUID) -> None:
 
 
 async def list_transcript_entries(
-    db: AsyncSession, session_id: uuid.UUID
+    db: AsyncSession,
+    session_id: uuid.UUID,
 ) -> list[SessionTranscriptEntry]:
     result = await db.execute(
         select(SessionTranscriptEntry)
@@ -157,12 +150,8 @@ async def update_transcript_entry(
     data: UpdateTranscriptEntryInput,
 ) -> SessionTranscriptEntry:
     entry = await get_transcript_entry(db, entry_id)
-    if data.status is not None:
-        entry.status = data.status
-    if data.audio_files is not None:
-        entry.audio_files = data.audio_files
-    if data.transcript is not None:
-        entry.transcript = data.transcript
+    for field in data.model_fields_set:
+        setattr(entry, field, getattr(data, field))
     entry.updated_at = datetime.now(timezone.utc)
     await db.commit()
     await db.refresh(entry)

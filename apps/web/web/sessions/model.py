@@ -21,17 +21,17 @@ class Session(Base):
     __tablename__ = "sessions"
     __table_args__ = (
         UniqueConstraint(
-            "client_id", "session_number", name="uq_sessions_client_session_number"
+            "customer_id", "session_number", name="uq_sessions_customer_session_number"
         ),
-        Index("ix_sessions_client_id", "client_id"),
+        Index("ix_sessions_customer_id", "customer_id"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    client_id: Mapped[uuid.UUID] = mapped_column(
+    customer_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("clients.id", ondelete="CASCADE"),
+        ForeignKey("customers.id", ondelete="CASCADE"),
         nullable=False,
     )
     therapist_id: Mapped[int] = mapped_column(
@@ -52,8 +52,8 @@ class Session(Base):
         nullable=False,
     )
 
-    client: Mapped["Client"] = relationship(  # type: ignore[name-defined]  # noqa: F821
-        "Client", back_populates="sessions"
+    customer: Mapped["Customer"] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        "Customer", back_populates="sessions"
     )
     transcript_entries: Mapped[list["SessionTranscriptEntry"]] = relationship(
         "SessionTranscriptEntry",
