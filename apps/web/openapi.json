@@ -1105,8 +1105,7 @@
             "title": "Session Id"
           },
           "status": {
-            "type": "string",
-            "title": "Status"
+            "$ref": "#/components/schemas/TranscriptEntryStatus"
           },
           "audio_files": {
             "items": {
@@ -1148,6 +1147,14 @@
           "updated_at"
         ],
         "title": "TranscriptEntryOut"
+      },
+      "TranscriptEntryStatus": {
+        "type": "string",
+        "enum": [
+          "waiting_to_be_processed",
+          "processed"
+        ],
+        "title": "TranscriptEntryStatus"
       },
       "UpdateCustomerInput": {
         "properties": {
@@ -1256,13 +1263,12 @@
           "status": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/TranscriptEntryStatus"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Status"
+            ]
           },
           "audio_files": {
             "anyOf": [
