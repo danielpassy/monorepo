@@ -1,11 +1,11 @@
-import { client } from "./client";
-import { meAuthMeGet, logoutAuthLogoutPost } from "./generated/sdk.gen";
+import "./client";
+import { meAuthMeGet, logoutAuthLogoutPost, devLoginAuthDevLoginPost } from "./generated/sdk.gen";
 import type { MeAuthMeGetResponse } from "./generated/types.gen";
 import { apiUrl } from "@/settings";
 
-export type { MeAuthMeGetResponse as User };
+export type User = MeAuthMeGetResponse;
 
-export async function getMe(): Promise<MeAuthMeGetResponse> {
+export async function getMe(): Promise<User> {
   const { data, error } = await meAuthMeGet({ throwOnError: false });
   if (error) throw error;
   return data!;
@@ -20,19 +20,10 @@ export function getGoogleLoginUrl(): string {
 }
 
 export async function devLogin(email: string): Promise<User> {
-  const { data, error } = await client.request<User>({
-    method: "POST",
-    url: "/auth/dev-login",
+  const { data, error } = await devLoginAuthDevLoginPost({
     body: { email },
-    headers: {
-      "Content-Type": "application/json",
-    },
     throwOnError: false,
   });
-
-  if (error) {
-    throw error;
-  }
-
+  if (error) throw error;
   return data!;
 }

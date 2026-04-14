@@ -88,7 +88,7 @@ export default function SessionPage() {
         <SessionSidebar
           sessions={sessions}
           currentSessionId={sessionId}
-          clientId={customerId}
+          customerId={customerId}
           onNewSession={handleNewSession}
           onDeleteSession={handleDeleteSession}
         />

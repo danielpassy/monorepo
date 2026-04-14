@@ -33,7 +33,8 @@ asyncio_mode = "auto"
 
 [tool.taskipy.tasks]
 dev = "fastapi dev web/main.py"
-export_openapi = "SECRET_KEY=ci-check python -c \"import json; from pathlib import Path; from web.main import app; Path('openapi.json').write_text(json.dumps(app.openapi(), indent=2))\""
+# trailing \\n keeps the file consistent with what pre-commit formatters produce, avoiding a spurious diff in CI
+export_openapi = "SECRET_KEY=ci-check python -c \"import json; from pathlib import Path; from web.main import app; Path('openapi.json').write_text(json.dumps(app.openapi(), indent=2) + '\\n')\""
 test = "python -m pytest tests/"
 test-project = "python -m pytest tests/test_project_web.py"
 migrate = "alembic -c web/migrations/alembic.ini upgrade head"

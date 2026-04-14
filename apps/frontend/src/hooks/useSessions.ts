@@ -8,7 +8,7 @@ import {
   generateSummary,
   listTranscriptEntries,
 } from "@/api/sessions";
-import type { CreateSessionBody, UpdateSessionBody } from "@/api/generated/types.gen";
+import type { CreateSessionInput, UpdateSessionInput } from "@/api/generated/types.gen";
 
 export const sessionsQueryKey = (clientId: string) => ["sessions", "byClient", clientId] as const;
 
@@ -36,7 +36,7 @@ export function useSession(sessionId: string) {
 export function useCreateSession(clientId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: CreateSessionBody) => createSession(clientId, body),
+    mutationFn: (body: CreateSessionInput) => createSession(clientId, body),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: sessionsQueryKey(clientId) });
     },
@@ -46,7 +46,7 @@ export function useCreateSession(clientId: string) {
 export function useUpdateSession(sessionId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: UpdateSessionBody) => updateSession(sessionId, body),
+    mutationFn: (body: UpdateSessionInput) => updateSession(sessionId, body),
     onSuccess: (updated) => {
       queryClient.setQueryData(sessionQueryKey(sessionId), updated);
     },

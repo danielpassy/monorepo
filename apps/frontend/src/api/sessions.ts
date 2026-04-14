@@ -1,7 +1,7 @@
 import "./client";
 import {
-  listSessionsClientsClientIdSessionsGet,
-  createSessionClientsClientIdSessionsPost,
+  listSessionsCustomersCustomerIdSessionsGet,
+  createSessionCustomersCustomerIdSessionsPost,
   getSessionSessionsSessionIdGet,
   updateSessionSessionsSessionIdPatch,
   deleteSessionSessionsSessionIdDelete,
@@ -14,17 +14,17 @@ import {
 import type {
   SessionOut,
   TranscriptEntryOut,
-  CreateSessionBody,
-  UpdateSessionBody,
-  CreateTranscriptEntryBody,
-  UpdateTranscriptEntryBody,
+  CreateSessionInput,
+  UpdateSessionInput,
+  CreateTranscriptEntryInput,
+  UpdateTranscriptEntryInput,
 } from "./generated/types.gen";
 
 export type { SessionOut, TranscriptEntryOut };
 
 export async function listSessions(clientId: string): Promise<SessionOut[]> {
-  const { data, error } = await listSessionsClientsClientIdSessionsGet({
-    path: { client_id: clientId },
+  const { data, error } = await listSessionsCustomersCustomerIdSessionsGet({
+    path: { customer_id: clientId },
     throwOnError: false,
   });
   if (error) throw error;
@@ -33,10 +33,10 @@ export async function listSessions(clientId: string): Promise<SessionOut[]> {
 
 export async function createSession(
   clientId: string,
-  body: CreateSessionBody,
+  body: CreateSessionInput,
 ): Promise<SessionOut> {
-  const { data, error } = await createSessionClientsClientIdSessionsPost({
-    path: { client_id: clientId },
+  const { data, error } = await createSessionCustomersCustomerIdSessionsPost({
+    path: { customer_id: clientId },
     body,
     throwOnError: false,
   });
@@ -55,7 +55,7 @@ export async function getSession(sessionId: string): Promise<SessionOut> {
 
 export async function updateSession(
   sessionId: string,
-  body: UpdateSessionBody,
+  body: UpdateSessionInput,
 ): Promise<SessionOut> {
   const { data, error } = await updateSessionSessionsSessionIdPatch({
     path: { session_id: sessionId },
@@ -94,7 +94,7 @@ export async function listTranscriptEntries(sessionId: string): Promise<Transcri
 
 export async function createTranscriptEntry(
   sessionId: string,
-  body: CreateTranscriptEntryBody,
+  body: CreateTranscriptEntryInput,
 ): Promise<TranscriptEntryOut> {
   const { data, error } = await createTranscriptEntrySessionsSessionIdTranscriptEntriesPost({
     path: { session_id: sessionId },
@@ -105,13 +105,9 @@ export async function createTranscriptEntry(
   return data!;
 }
 
-export async function getTranscriptEntry(
-  entryId: string,
-  sessionId: string,
-): Promise<TranscriptEntryOut> {
+export async function getTranscriptEntry(entryId: string): Promise<TranscriptEntryOut> {
   const { data, error } = await getTranscriptEntrySessionTranscriptEntriesEntryIdGet({
     path: { entry_id: entryId },
-    query: { session_id: sessionId },
     throwOnError: false,
   });
   if (error) throw error;
@@ -120,12 +116,10 @@ export async function getTranscriptEntry(
 
 export async function updateTranscriptEntry(
   entryId: string,
-  sessionId: string,
-  body: UpdateTranscriptEntryBody,
+  body: UpdateTranscriptEntryInput,
 ): Promise<TranscriptEntryOut> {
   const { data, error } = await updateTranscriptEntrySessionTranscriptEntriesEntryIdPatch({
     path: { entry_id: entryId },
-    query: { session_id: sessionId },
     body,
     throwOnError: false,
   });

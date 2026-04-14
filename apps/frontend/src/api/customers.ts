@@ -6,7 +6,7 @@ import {
   updateCustomerCustomersCustomerIdPatch,
   deleteCustomerCustomersCustomerIdDelete,
 } from "./generated/sdk.gen";
-import type { CustomerOut, CreateCustomerBody, UpdateCustomerBody } from "./generated/types.gen";
+import type { CustomerOut, CreateCustomerInput, UpdateCustomerInput } from "./generated/types.gen";
 
 export type { CustomerOut };
 
@@ -16,7 +16,7 @@ export async function listCustomers(): Promise<CustomerOut[]> {
   return data!;
 }
 
-export async function createCustomer(body: CreateCustomerBody): Promise<CustomerOut> {
+export async function createCustomer(body: CreateCustomerInput): Promise<CustomerOut> {
   const { data, error } = await createCustomerCustomersPost({ body, throwOnError: false });
   if (error) throw error;
   return data!;
@@ -33,7 +33,7 @@ export async function getCustomer(customerId: string): Promise<CustomerOut> {
 
 export async function updateCustomer(
   customerId: string,
-  body: UpdateCustomerBody,
+  body: UpdateCustomerInput,
 ): Promise<CustomerOut> {
   const { data, error } = await updateCustomerCustomersCustomerIdPatch({
     path: { customer_id: customerId },

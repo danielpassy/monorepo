@@ -13,7 +13,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
   useEffect(() => {
     if (!isLoading && (isError || !user)) {
-      navigate({ to: "/login" });
+      void navigate({ to: "/login" });
     }
   }, [isLoading, isError, user, navigate]);
 

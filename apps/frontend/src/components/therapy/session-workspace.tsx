@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { DocumentType } from "@/lib/types/therapy";
 import type { SessionOut, TranscriptEntryOut } from "@/api/generated/types.gen";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
@@ -41,20 +41,14 @@ export function SessionWorkspace({
     setSummary(session.summary ?? "");
   }, [session.id, session.summary]);
 
-  const handleLayout = useCallback((sizes: number[]) => {
-    setLeftCollapsed(sizes[0] < COLLAPSE_THRESHOLD);
-    setRightCollapsed(sizes[1] < COLLAPSE_THRESHOLD);
-  }, []);
-
   return (
-    <ResizablePanelGroup direction="horizontal" onLayout={handleLayout} className="h-full">
+    <ResizablePanelGroup orientation="horizontal" className="h-full">
       <ResizablePanel
         defaultSize={50}
         minSize={0}
         collapsible
         collapsedSize={0}
-        onCollapse={() => setLeftCollapsed(true)}
-        onExpand={() => setLeftCollapsed(false)}
+        onResize={({ asPercentage }) => setLeftCollapsed(asPercentage < COLLAPSE_THRESHOLD)}
       >
         {!leftCollapsed && (
           <DocumentPanel
@@ -80,8 +74,7 @@ export function SessionWorkspace({
         minSize={0}
         collapsible
         collapsedSize={0}
-        onCollapse={() => setRightCollapsed(true)}
-        onExpand={() => setRightCollapsed(false)}
+        onResize={({ asPercentage }) => setRightCollapsed(asPercentage < COLLAPSE_THRESHOLD)}
       >
         {!rightCollapsed && (
           <DocumentPanel

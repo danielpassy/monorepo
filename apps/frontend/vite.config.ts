@@ -7,6 +7,12 @@ export default defineConfig({
   fmt: {
     ignorePatterns: ["src/api/generated/**"],
   },
+  lint: {
+    options: {
+      typeAware: true,
+      typeCheck: true,
+    },
+  },
   staged: {
     "*": "vp check --fix",
   },

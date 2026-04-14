@@ -1,5 +1,4 @@
 import type { TranscriptEntryOut } from "@/api/generated/types.gen";
-import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 
@@ -9,9 +8,7 @@ interface TranscriptViewProps {
 
 const statusLabel: Record<string, string> = {
   waiting_to_be_processed: "Aguardando processamento",
-  processing: "Processando",
   processed: "Processado",
-  failed: "Falhou",
 };
 
 export function TranscriptView({ entries }: TranscriptViewProps) {
@@ -41,7 +38,6 @@ export function TranscriptView({ entries }: TranscriptViewProps) {
 
 function TranscriptEntryCard({ entry }: { entry: TranscriptEntryOut }) {
   const isProcessed = entry.status === "processed";
-  const isFailed = entry.status === "failed";
 
   return (
     <div className="rounded-lg border bg-card p-4">
@@ -49,19 +45,14 @@ function TranscriptEntryCard({ entry }: { entry: TranscriptEntryOut }) {
         <span className="text-xs text-muted-foreground">
           {new Date(entry.created_at).toLocaleString("pt-BR")}
         </span>
-        <Badge
-          variant={isProcessed ? "default" : isFailed ? "destructive" : "secondary"}
-          className="text-xs"
-        >
+        <Badge variant={isProcessed ? "default" : "secondary"} className="text-xs">
           {statusLabel[entry.status] ?? entry.status}
         </Badge>
       </div>
       {isProcessed && entry.transcript ? (
         <p className="whitespace-pre-wrap text-sm leading-relaxed">{entry.transcript}</p>
       ) : (
-        <p className={cn("text-sm text-muted-foreground", isFailed && "text-destructive")}>
-          {isFailed ? "Falha ao processar o áudio." : "Aguardando processamento do áudio..."}
-        </p>
+        <p className="text-sm text-muted-foreground">Aguardando processamento do áudio...</p>
       )}
     </div>
   );

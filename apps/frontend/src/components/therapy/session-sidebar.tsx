@@ -25,7 +25,7 @@ import { Calendar, Clock, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 interface SessionSidebarProps {
   sessions: SessionOut[];
   currentSessionId: string;
-  clientId: string;
+  customerId: string;
   onNewSession: () => Promise<SessionOut>;
   onDeleteSession: (sessionId: string) => Promise<void>;
 }
@@ -33,7 +33,7 @@ interface SessionSidebarProps {
 export function SessionSidebar({
   sessions,
   currentSessionId,
-  clientId,
+  customerId,
   onNewSession,
   onDeleteSession,
 }: SessionSidebarProps) {
@@ -53,8 +53,8 @@ export function SessionSidebar({
   const handleNewSession = async () => {
     const newSession = await onNewSession();
     void navigate({
-      to: "/clients/$clientId/sessions/$sessionId",
-      params: { clientId, sessionId: newSession.id },
+      to: "/customers/$customerId/sessions/$sessionId",
+      params: { customerId, sessionId: newSession.id },
     });
   };
 
@@ -69,8 +69,8 @@ export function SessionSidebar({
       const remaining = sessions.filter((s) => s.id !== sessionToDelete.id);
       if (remaining.length > 0) {
         void navigate({
-          to: "/clients/$clientId/sessions/$sessionId",
-          params: { clientId, sessionId: remaining[0].id },
+          to: "/customers/$customerId/sessions/$sessionId",
+          params: { customerId, sessionId: remaining[0].id },
         });
       } else {
         void navigate({ to: "/" });
@@ -115,8 +115,8 @@ export function SessionSidebar({
                   onMouseLeave={() => setHoveredSessionId(null)}
                 >
                   <Link
-                    to="/clients/$clientId/sessions/$sessionId"
-                    params={{ clientId, sessionId: session.id }}
+                    to="/customers/$customerId/sessions/$sessionId"
+                    params={{ customerId, sessionId: session.id }}
                     className="flex flex-col gap-1"
                   >
                     <div className="flex items-center justify-between">

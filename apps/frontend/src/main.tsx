@@ -15,7 +15,7 @@ async function prepare() {
   }
 }
 
-prepare().then(() => {
+void prepare().then(() => {
   createRoot(document.getElementById("app")!).render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
