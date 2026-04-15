@@ -17,7 +17,7 @@ def matches_any(path: str, patterns: list[str]) -> bool:
 
 def parse_changed_files(args: argparse.Namespace) -> list[str]:
     if args.changed_files_json:
-        return json.loads(args.changed_files_json)
+        return json.loads(args.changed_files_json.replace('\\"', '"'))
     return args.changed_file
 
 
