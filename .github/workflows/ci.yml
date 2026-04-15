@@ -31,7 +31,9 @@ jobs:
           json: true
       - name: Run selective CI
         id: select
-        run: uv run --no-project python .github/scripts/selective_ci.py --changed-files-json '${{ steps.diff.outputs.all_changed_files }}' --github-output "$GITHUB_OUTPUT"
+        env:
+          CHANGED_FILES: ${{ steps.diff.outputs.all_changed_files }}
+        run: uv run --no-project python .github/scripts/selective_ci.py --changed-files-json "$CHANGED_FILES" --github-output "$GITHUB_OUTPUT"
 
   compliance:
     runs-on: ubuntu-latest
