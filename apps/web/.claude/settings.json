@@ -1,12 +1,11 @@
 {
   "permissions": {
     "deny": [
-      "Read(infra/terraform.tfvars)",
+      "Read(../infra/terraform.tfvars)",
       "Read(**/*.tfvars)",
       "Read(infra/terraform/.env)",
       "Read(**/.env)",
-      "Read(infra/secrets.txt)",
-      "Edit(infra/secrets.txt)"
+      "Read(../infra/secrets.txt)"
     ]
   }
 }

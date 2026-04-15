@@ -5,6 +5,7 @@ from pydantic import ValidationError
 from starlette.middleware.sessions import SessionMiddleware
 
 from web._shared.logging import format_log_line
+from web.auth.controller import router as auth_router
 from web.auth.oauth import configure_google_oauth
 from web.middleware.auth import AuthMiddleware
 from web.settings import get_settings

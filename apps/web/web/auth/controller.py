@@ -62,6 +62,8 @@ async def dev_login(
     redis: aioredis.Redis = Depends(get_redis),
 ) -> dict[str, str | int]:
     settings = get_settings()
+    if not settings.debug:
+        raise HTTPException(status_code=404, detail="not found")
     user = await service.get_or_create_email_user(db, str(body.email))
     session_id = await service.create_session(redis, user)
     signed = service.sign_session_id(session_id, settings.secret_key)
