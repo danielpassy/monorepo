@@ -6,21 +6,20 @@ import { cn } from "@/lib/utils";
 interface NotesEditorProps {
   value: string;
   onChange: (value: string) => void;
+  onSave?: (value: string) => void;
 }
 
-export function NotesEditor({ value, onChange }: NotesEditorProps) {
+export function NotesEditor({ value, onChange, onSave }: NotesEditorProps) {
   const [localValue, setLocalValue] = useState(value);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Sync external value changes
   useEffect(() => {
     setLocalValue(value);
   }, [value]);
 
-  // Auto-save with debounce
   useEffect(() => {
     if (localValue !== value) {
       if (saveTimeoutRef.current) {
@@ -30,9 +29,10 @@ export function NotesEditor({ value, onChange }: NotesEditorProps) {
       setIsSaving(true);
       saveTimeoutRef.current = setTimeout(() => {
         onChange(localValue);
+        if (onSave) onSave(localValue);
         setIsSaving(false);
         setLastSaved(new Date());
-      }, 500);
+      }, 800);
     }
 
     return () => {
@@ -40,7 +40,7 @@ export function NotesEditor({ value, onChange }: NotesEditorProps) {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [localValue, value, onChange]);
+  }, [localValue, value, onChange, onSave]);
 
   const insertFormatting = (prefix: string, suffix: string = prefix) => {
     const textarea = textareaRef.current;
@@ -54,7 +54,6 @@ export function NotesEditor({ value, onChange }: NotesEditorProps) {
 
     setLocalValue(newText);
 
-    // Restore cursor position
     setTimeout(() => {
       textarea.focus();
       textarea.setSelectionRange(start + prefix.length, end + prefix.length);
@@ -71,12 +70,10 @@ export function NotesEditor({ value, onChange }: NotesEditorProps) {
     const currentLine = localValue.substring(lineStart, start);
 
     if (currentLine.startsWith("• ")) {
-      // Remove bullet if already there
       const newText =
         localValue.substring(0, lineStart) + currentLine.substring(2) + localValue.substring(start);
       setLocalValue(newText);
     } else {
-      // Add bullet at line start
       const newText = localValue.substring(0, lineStart) + "• " + localValue.substring(lineStart);
       setLocalValue(newText);
     }
@@ -84,7 +81,6 @@ export function NotesEditor({ value, onChange }: NotesEditorProps) {
 
   return (
     <div className="flex h-full flex-col">
-      {/* Toolbar */}
       <div className="flex items-center justify-between border-b px-4 py-2">
         <div className="flex items-center gap-1">
           <Button
@@ -119,7 +115,6 @@ export function NotesEditor({ value, onChange }: NotesEditorProps) {
         </div>
       </div>
 
-      {/* Editor */}
       <div className="flex-1 overflow-hidden">
         <textarea
           ref={textareaRef}

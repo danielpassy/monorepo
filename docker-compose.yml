@@ -31,7 +31,7 @@ services:
       args:
         BASE_IMAGE: monorepo-python-base:dev
     environment:
-      DATABASE_URL: postgresql://monorepo:monorepo@postgres:5432/monorepo
+      DATABASE_URL: postgresql+asyncpg://monorepo:monorepo@postgres:5432/monorepo
     ports:
       - "8001:8000"
     depends_on:
@@ -51,7 +51,7 @@ services:
       args:
         BASE_IMAGE: monorepo-python-base:dev
     environment:
-      DATABASE_URL: postgresql://monorepo:monorepo@postgres:5432/worker_app
+      DATABASE_URL: postgresql+asyncpg://monorepo:monorepo@postgres:5432/worker_app
       CELERY_BROKER_URL: redis://redis:6379/0
     depends_on:
       postgres:

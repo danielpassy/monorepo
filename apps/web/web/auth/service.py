@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 import redis.asyncio as aioredis
 from itsdangerous import BadSignature, Signer
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,6 +43,23 @@ async def create_google_user(session: AsyncSession, info: GoogleUserInfo) -> Use
             index_elements=[User.google_id],
             set_={"email": info.email, "name": info.name},
         )
+        .returning(User)
+    )
+    result = await session.execute(stmt)
+    user = result.scalar_one()
+    await session.commit()
+    return user
+
+
+async def get_or_create_email_user(session: AsyncSession, email: str) -> User:
+    result = await session.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+    if user is not None:
+        return user
+
+    stmt = (
+        insert(User)
+        .values(email=email, name=email, google_id=f"dev_{uuid.uuid4().hex}")
         .returning(User)
     )
     result = await session.execute(stmt)

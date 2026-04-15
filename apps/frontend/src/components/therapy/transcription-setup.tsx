@@ -10,9 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Mic, MicOff, Globe, ExternalLink, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
-// Simulated extension ID - in production this would be your actual extension ID
-const EXTENSION_ID = "therapynotes-transcription-ext";
-
 export function TranscriptionSetup() {
   const [isOpen, setIsOpen] = useState(false);
   const [extensionStatus, setExtensionStatus] = useState<"checking" | "active" | "inactive">(

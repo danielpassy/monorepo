@@ -9,6 +9,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from web.models.base import Base
 import web.auth.model  # noqa: F401 — registers User table
+import web.customers.model  # noqa: F401 — registers Customer table
+import web.sessions.model  # noqa: F401 — registers Session + SessionTranscriptEntry tables
 
 config = context.config
 

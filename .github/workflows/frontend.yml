@@ -25,6 +25,8 @@ jobs:
           cache: true
       - name: Install dependencies
         run: vp install
+      - name: Run codegen
+        run: vp run codegen
       - name: Lint and type check
         run: vp check
       - name: Run tests
@@ -47,6 +49,8 @@ jobs:
           cache: true
       - name: Install dependencies
         run: vp install
+      - name: Run codegen
+        run: vp run codegen
       - name: Build for production
         run: vp build
       - name: Upload to S3

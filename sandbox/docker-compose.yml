@@ -10,7 +10,7 @@ services:
       - ~/.codex:/home/agent/.codex:rw
       - ~/.config/gh:/home/agent/.config/gh:rw
     environment:
-      DATABASE_URL: postgresql://monorepo:monorepo@postgres:5432/monorepo
+      DATABASE_URL: postgresql+asyncpg://monorepo:monorepo@postgres:5432/monorepo
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/0
     depends_on:

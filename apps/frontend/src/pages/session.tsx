@@ -1,34 +1,56 @@
 import { useParams, useNavigate } from "@tanstack/react-router";
-import { usePatientStore } from "@/lib/patient-store";
 import { AppHeader } from "@/components/therapy/app-header";
-import { ClientHeader } from "@/components/therapy/client-header";
+import { CustomerHeader } from "@/components/therapy/customer-header";
 import { SessionSidebar } from "@/components/therapy/session-sidebar";
 import { SessionWorkspace } from "@/components/therapy/session-workspace";
+import { useCustomer } from "@/hooks/useCustomers";
+import {
+  useSessions,
+  useSession,
+  useCreateSession,
+  useDeleteSession,
+  useUpdateSession,
+  useGenerateSummary,
+  useTranscriptEntries,
+} from "@/hooks/useSessions";
 
 export default function SessionPage() {
-  const { clientId, sessionId } = useParams({ strict: false }) as {
-    clientId: string;
+  const { customerId, sessionId } = useParams({ strict: false }) as {
+    customerId: string;
     sessionId: string;
   };
   const navigate = useNavigate();
 
-  const { getClientById, getSessionById, getSessionsByClientId, addSession, deleteSession } =
-    usePatientStore();
+  const { data: customer, isLoading: customerLoading } = useCustomer(customerId);
+  const { data: session, isLoading: sessionLoading } = useSession(sessionId);
+  const { data: sessions = [], isLoading: sessionsLoading } = useSessions(customerId);
+  const { data: transcriptEntries = [] } = useTranscriptEntries(sessionId);
 
-  const client = getClientById(clientId);
-  const session = getSessionById(sessionId);
-  const clientSessions = getSessionsByClientId(clientId);
+  const createSession = useCreateSession(customerId);
+  const deleteSession = useDeleteSession(customerId);
+  const updateSession = useUpdateSession(sessionId);
+  const generateSummary = useGenerateSummary(sessionId);
 
-  if (!client) {
+  const isLoading = customerLoading || sessionLoading || sessionsLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <p className="text-muted-foreground">Carregando...</p>
+      </div>
+    );
+  }
+
+  if (!customer) {
     void navigate({ to: "/" });
     return null;
   }
 
-  if (!session || session.clientId !== clientId) {
-    if (clientSessions.length > 0) {
+  if (!session || session.customer_id !== customerId) {
+    if (sessions.length > 0) {
       void navigate({
-        to: "/clients/$clientId/sessions/$sessionId",
-        params: { clientId, sessionId: clientSessions[0].id },
+        to: "/customers/$customerId/sessions/$sessionId",
+        params: { customerId, sessionId: sessions[0].id },
       });
     } else {
       void navigate({ to: "/" });
@@ -36,29 +58,49 @@ export default function SessionPage() {
     return null;
   }
 
-  const handleNewSession = () => {
-    return addSession(clientId);
+  const handleNewSession = async () => {
+    const today = new Date().toISOString().split("T")[0];
+    return createSession.mutateAsync({ date: today });
   };
 
-  const handleDeleteSession = (sessionIdToDelete: string) => {
-    deleteSession(sessionIdToDelete);
+  const handleDeleteSession = async (sessionIdToDelete: string) => {
+    await deleteSession.mutateAsync(sessionIdToDelete);
+  };
+
+  const handleNotesSave = (notes: string) => {
+    updateSession.mutate({ notes });
+  };
+
+  const handleSummarySave = (summary: string) => {
+    updateSession.mutate({ summary });
+  };
+
+  const handleGenerateSummary = async () => {
+    await generateSummary.mutateAsync();
   };
 
   return (
     <div className="flex h-screen flex-col bg-muted/20">
       <AppHeader />
-      <ClientHeader client={client} session={session} />
+      <CustomerHeader customer={customer} session={session} />
 
       <div className="flex flex-1 overflow-hidden">
         <SessionSidebar
-          sessions={clientSessions}
+          sessions={sessions}
           currentSessionId={sessionId}
-          clientId={clientId}
+          customerId={customerId}
           onNewSession={handleNewSession}
           onDeleteSession={handleDeleteSession}
         />
         <main className="flex-1 overflow-hidden">
-          <SessionWorkspace session={session} clientName={client.name} />
+          <SessionWorkspace
+            session={session}
+            transcriptEntries={transcriptEntries}
+            onNotesSave={handleNotesSave}
+            onSummarySave={handleSummarySave}
+            onGenerateSummary={handleGenerateSummary}
+            isGeneratingSummary={generateSummary.isPending}
+          />
         </main>
       </div>
     </div>

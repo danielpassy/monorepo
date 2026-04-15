@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Session } from "@/lib/types/therapy";
+import type { SessionOut } from "@/api/generated/types.gen";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -23,22 +23,22 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Calendar, Clock, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 
 interface SessionSidebarProps {
-  sessions: Session[];
+  sessions: SessionOut[];
   currentSessionId: string;
-  clientId: string;
-  onNewSession: () => Session;
-  onDeleteSession: (sessionId: string) => void;
+  customerId: string;
+  onNewSession: () => Promise<SessionOut>;
+  onDeleteSession: (sessionId: string) => Promise<void>;
 }
 
 export function SessionSidebar({
   sessions,
   currentSessionId,
-  clientId,
+  customerId,
   onNewSession,
   onDeleteSession,
 }: SessionSidebarProps) {
   const navigate = useNavigate();
-  const [sessionToDelete, setSessionToDelete] = useState<Session | null>(null);
+  const [sessionToDelete, setSessionToDelete] = useState<SessionOut | null>(null);
   const [hoveredSessionId, setHoveredSessionId] = useState<string | null>(null);
 
   const formatDate = (dateString: string) => {
@@ -50,28 +50,27 @@ export function SessionSidebar({
     });
   };
 
-  const handleNewSession = () => {
-    const newSession = onNewSession();
+  const handleNewSession = async () => {
+    const newSession = await onNewSession();
     void navigate({
-      to: "/clients/$clientId/sessions/$sessionId",
-      params: { clientId, sessionId: newSession.id },
+      to: "/customers/$customerId/sessions/$sessionId",
+      params: { customerId, sessionId: newSession.id },
     });
   };
 
-  const handleDeleteSession = () => {
+  const handleDeleteSession = async () => {
     if (!sessionToDelete) return;
 
     const isCurrentSession = sessionToDelete.id === currentSessionId;
-    onDeleteSession(sessionToDelete.id);
+    await onDeleteSession(sessionToDelete.id);
     setSessionToDelete(null);
 
-    // If deleting current session, navigate to the first available session
     if (isCurrentSession) {
-      const remainingSessions = sessions.filter((s) => s.id !== sessionToDelete.id);
-      if (remainingSessions.length > 0) {
+      const remaining = sessions.filter((s) => s.id !== sessionToDelete.id);
+      if (remaining.length > 0) {
         void navigate({
-          to: "/clients/$clientId/sessions/$sessionId",
-          params: { clientId, sessionId: remainingSessions[0].id },
+          to: "/customers/$customerId/sessions/$sessionId",
+          params: { customerId, sessionId: remaining[0].id },
         });
       } else {
         void navigate({ to: "/" });
@@ -89,7 +88,12 @@ export function SessionSidebar({
               {sessions.length} {sessions.length !== 1 ? "sessões" : "sessão"} registradas
             </p>
           </div>
-          <Button variant="ghost" size="icon-sm" onClick={handleNewSession} title="Nova Sessão">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => void handleNewSession()}
+            title="Nova Sessão"
+          >
             <Plus className="size-4" />
           </Button>
         </div>
@@ -98,7 +102,6 @@ export function SessionSidebar({
           <div className="p-2">
             {sessions.map((session) => {
               const isActive = session.id === currentSessionId;
-              const isInProgress = session.status === "in-progress";
               const isHovered = hoveredSessionId === session.id;
 
               return (
@@ -112,8 +115,8 @@ export function SessionSidebar({
                   onMouseLeave={() => setHoveredSessionId(null)}
                 >
                   <Link
-                    to="/clients/$clientId/sessions/$sessionId"
-                    params={{ clientId, sessionId: session.id }}
+                    to="/customers/$customerId/sessions/$sessionId"
+                    params={{ customerId, sessionId: session.id }}
                     className="flex flex-col gap-1"
                   >
                     <div className="flex items-center justify-between">
@@ -123,30 +126,23 @@ export function SessionSidebar({
                           isActive ? "text-foreground" : "text-muted-foreground",
                         )}
                       >
-                        Sessão #{session.sessionNumber}
+                        Sessão #{session.session_number}
                       </span>
-                      {isInProgress && (
-                        <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                          <span className="size-1.5 animate-pulse rounded-full bg-primary" />
-                          Ativo
-                        </span>
-                      )}
                     </div>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Calendar className="size-3" />
                         {formatDate(session.date)}
                       </span>
-                      {session.duration && (
+                      {session.duration_minutes && (
                         <span className="flex items-center gap-1">
                           <Clock className="size-3" />
-                          {session.duration}m
+                          {session.duration_minutes}m
                         </span>
                       )}
                     </div>
                   </Link>
 
-                  {/* Ellipsis menu - appears on hover */}
                   <div
                     className={cn(
                       "absolute right-2 top-2 transition-opacity",
@@ -185,7 +181,12 @@ export function SessionSidebar({
             {sessions.length === 0 && (
               <div className="p-4 text-center text-sm text-muted-foreground">
                 <p>Nenhuma sessão ainda</p>
-                <Button variant="outline" size="sm" className="mt-2" onClick={handleNewSession}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => void handleNewSession()}
+                >
                   <Plus className="mr-2 size-4" />
                   Criar Primeira Sessão
                 </Button>
@@ -195,20 +196,19 @@ export function SessionSidebar({
         </ScrollArea>
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!sessionToDelete} onOpenChange={() => setSessionToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Sessão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir a Sessão #{sessionToDelete?.sessionNumber}? Isso irá
+              Tem certeza que deseja excluir a Sessão #{sessionToDelete?.session_number}? Isso irá
               remover permanentemente todas as notas, transcrições e resumos desta sessão.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteSession}
+              onClick={() => void handleDeleteSession()}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Excluir

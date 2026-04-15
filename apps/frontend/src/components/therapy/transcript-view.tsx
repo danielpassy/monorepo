@@ -1,10 +1,15 @@
-import type { TranscriptEntry } from "@/lib/types/therapy";
-import { cn } from "@/lib/utils";
+import type { TranscriptEntryOut } from "@/api/generated/types.gen";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 interface TranscriptViewProps {
-  entries: TranscriptEntry[];
+  entries: TranscriptEntryOut[];
 }
+
+const statusLabel: Record<string, string> = {
+  waiting_to_be_processed: "Aguardando processamento",
+  processed: "Processado",
+};
 
 export function TranscriptView({ entries }: TranscriptViewProps) {
   if (entries.length === 0) {
@@ -24,30 +29,31 @@ export function TranscriptView({ entries }: TranscriptViewProps) {
     <ScrollArea className="h-full">
       <div className="space-y-4 p-4">
         {entries.map((entry) => (
-          <TranscriptMessage key={entry.id} entry={entry} />
+          <TranscriptEntryCard key={entry.id} entry={entry} />
         ))}
       </div>
     </ScrollArea>
   );
 }
 
-function TranscriptMessage({ entry }: { entry: TranscriptEntry }) {
-  const isTherapist = entry.speaker === "therapist";
+function TranscriptEntryCard({ entry }: { entry: TranscriptEntryOut }) {
+  const isProcessed = entry.status === "processed";
 
   return (
-    <div className={cn("flex flex-col gap-1", isTherapist ? "items-start" : "items-end")}>
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span className="font-medium">{isTherapist ? entry.speakerName : entry.speakerName}</span>
-        <span>{entry.timestamp}</span>
+    <div className="rounded-lg border bg-card p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-xs text-muted-foreground">
+          {new Date(entry.created_at).toLocaleString("pt-BR")}
+        </span>
+        <Badge variant={isProcessed ? "default" : "secondary"} className="text-xs">
+          {statusLabel[entry.status] ?? entry.status}
+        </Badge>
       </div>
-      <div
-        className={cn(
-          "max-w-[85%] rounded-lg px-4 py-3 text-sm leading-relaxed",
-          isTherapist ? "bg-muted text-foreground" : "bg-primary/10 text-foreground",
-        )}
-      >
-        {entry.content}
-      </div>
+      {isProcessed && entry.transcript ? (
+        <p className="whitespace-pre-wrap text-sm leading-relaxed">{entry.transcript}</p>
+      ) : (
+        <p className="text-sm text-muted-foreground">Aguardando processamento do áudio...</p>
+      )}
     </div>
   );
 }
