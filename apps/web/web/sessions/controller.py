@@ -80,7 +80,11 @@ async def create_session(
     return SessionOut.model_validate(session)
 
 
-@router.get("/sessions/{session_id}", response_model=SessionOut)
+@router.get(
+    "/sessions/{session_id}",
+    response_model=SessionOut,
+    responses={404: {"description": "Not Found"}},
+)
 async def get_session(
     session_id: uuid.UUID,
     request: Request,
@@ -94,7 +98,11 @@ async def get_session(
     return SessionOut.model_validate(session)
 
 
-@router.patch("/sessions/{session_id}", response_model=SessionOut)
+@router.patch(
+    "/sessions/{session_id}",
+    response_model=SessionOut,
+    responses={404: {"description": "Not Found"}},
+)
 async def update_session(
     session_id: uuid.UUID,
     body: UpdateSessionInput,
@@ -109,7 +117,11 @@ async def update_session(
     return SessionOut.model_validate(session)
 
 
-@router.delete("/sessions/{session_id}", status_code=204)
+@router.delete(
+    "/sessions/{session_id}",
+    status_code=204,
+    responses={404: {"description": "Not Found"}},
+)
 async def delete_session(
     session_id: uuid.UUID,
     request: Request,
@@ -180,7 +192,11 @@ async def create_transcript_entry(
     return TranscriptEntryOut.model_validate(entry)
 
 
-@router.get("/session-transcript-entries/{entry_id}", response_model=TranscriptEntryOut)
+@router.get(
+    "/session-transcript-entries/{entry_id}",
+    response_model=TranscriptEntryOut,
+    responses={404: {"description": "Not Found"}},
+)
 async def get_transcript_entry(
     entry_id: uuid.UUID,
     request: Request,
@@ -195,7 +211,9 @@ async def get_transcript_entry(
 
 
 @router.patch(
-    "/session-transcript-entries/{entry_id}", response_model=TranscriptEntryOut
+    "/session-transcript-entries/{entry_id}",
+    response_model=TranscriptEntryOut,
+    responses={404: {"description": "Not Found"}},
 )
 async def update_transcript_entry(
     entry_id: uuid.UUID,

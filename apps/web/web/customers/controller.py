@@ -50,7 +50,11 @@ async def create_customer(
     return CustomerOut.model_validate(customer)
 
 
-@router.get("/{customer_id}", response_model=CustomerOut)
+@router.get(
+    "/{customer_id}",
+    response_model=CustomerOut,
+    responses={404: {"description": "Not Found"}},
+)
 async def get_customer(
     customer_id: uuid.UUID,
     request: Request,
@@ -64,7 +68,11 @@ async def get_customer(
     return CustomerOut.model_validate(customer)
 
 
-@router.patch("/{customer_id}", response_model=CustomerOut)
+@router.patch(
+    "/{customer_id}",
+    response_model=CustomerOut,
+    responses={404: {"description": "Not Found"}},
+)
 async def update_customer(
     customer_id: uuid.UUID,
     body: UpdateCustomerInput,
@@ -79,7 +87,9 @@ async def update_customer(
     return CustomerOut.model_validate(customer)
 
 
-@router.delete("/{customer_id}", status_code=204)
+@router.delete(
+    "/{customer_id}", status_code=204, responses={404: {"description": "Not Found"}}
+)
 async def delete_customer(
     customer_id: uuid.UUID,
     request: Request,
