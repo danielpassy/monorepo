@@ -1,3 +1,4 @@
+import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -14,6 +15,11 @@ from web.sessions.controller import router as sessions_router
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    if settings.sentry_dsn:
+        sentry_sdk.init(
+            dsn=settings.sentry_dsn,
+            traces_sample_rate=1.0,
+        )
     configure_google_oauth()
 
     # Import models so SQLAlchemy sees all mapped classes before the first use.

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "@tanstack/react-router";
@@ -5,6 +6,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { router } from "./routes";
 import { settings } from "@/settings";
 import "./style.css";
+
+if (settings.sentryDsn) {
+  Sentry.init({
+    dsn: settings.sentryDsn,
+    integrations: [Sentry.browserTracingIntegration()],
+    tracesSampleRate: 1.0,
+  });
+}
 
 const queryClient = new QueryClient();
 
