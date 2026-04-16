@@ -1,3 +1,7 @@
+# Frontend Agent Instructions
+
+Before making changes in `apps/frontend`, read `../../docs/frontend-structure.md`.
+
 <!--VITE PLUS START-->
 
 # Using Vite+, the Unified Toolchain for the Web
