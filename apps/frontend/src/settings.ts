@@ -2,6 +2,7 @@ const env = import.meta.env;
 
 export const settings = {
   apiBaseUrl: env.VITE_API_BASE_URL ?? "http://localhost:8000",
+  debug: env.DEV,
   mswEnabled: env.VITE_MSW_ENABLED === "true",
 } as const;
 

@@ -3,8 +3,8 @@ from fastapi import APIRouter
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
 
-from web.app import create_app
 from web.middleware.auth import PUBLIC_ROUTES
+from web.main import create_app
 
 _test_router = APIRouter()
 

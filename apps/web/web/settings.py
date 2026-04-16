@@ -17,8 +17,11 @@ class WebSettings(BaseSettings):
     cookie_secure: bool = False
     database_url: str = "postgresql+asyncpg://monorepo:monorepo@localhost:5432/monorepo"
     redis_url: str = "redis://localhost:6379/0"
-    google_client_id: str = ""
+    google_client_id: str = (
+        "716393476167-40sbgf20kq14q15f9vllcue27sk5g6ne.apps.googleusercontent.com"
+    )
     google_client_secret: str = ""
+    debug: bool = False
     cors_allow_origins: Annotated[tuple[str, ...], NoDecode] = Field(
         default=("https://api.rafaellapontes.com.br",)
     )
