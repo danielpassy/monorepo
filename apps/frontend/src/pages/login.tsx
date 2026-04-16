@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { devLogin, getGoogleLoginUrl } from "@/api/auth";
+import { settings } from "@/settings";
 
 export default function LoginPage() {
   const hashSearch = window.location.hash.includes("?")
@@ -53,14 +54,19 @@ export default function LoginPage() {
           Login with Google
         </Button>
 
-        {import.meta.env.DEV && (
+        {settings.debug && (
           <>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">dev only</span>
+                <span className="bg-background px-2 text-muted-foreground">
+                  <span className="mr-1 text-[10px] font-semibold tracking-[0.3em] text-foreground/60">
+                    d
+                  </span>
+                  dev only
+                </span>
               </div>
             </div>
 
