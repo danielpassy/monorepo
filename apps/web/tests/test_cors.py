@@ -1,20 +1,39 @@
+import os
+
+import pytest
 from fastapi.testclient import TestClient
 
-from web.main import app
+from web.main import create_app
 from web.settings import get_settings
 
 
-def build_client() -> TestClient:
-    return TestClient(app)
+@pytest.fixture(scope="module")
+def cors_client() -> TestClient:
+    original_origins = os.environ.get("CORS_ALLOW_ORIGINS")
+    original_origin_regex = os.environ.get("CORS_ALLOW_ORIGIN_REGEX")
 
-
-def test_cors_allows_chrome_extension_origin(monkeypatch) -> None:
-    monkeypatch.setenv("CORS_ALLOW_ORIGINS", "https://api.rafaellapontes.com.br")
-    monkeypatch.setenv("CORS_ALLOW_ORIGIN_REGEX", r"chrome-extension://.*")
+    os.environ["CORS_ALLOW_ORIGINS"] = "https://api.rafaellapontes.com.br"
+    os.environ["CORS_ALLOW_ORIGIN_REGEX"] = r"chrome-extension://.*"
     get_settings.cache_clear()
-    client = build_client()
 
-    response = client.options(
+    client = TestClient(create_app())
+    yield client
+
+    if original_origins is None:
+        os.environ.pop("CORS_ALLOW_ORIGINS", None)
+    else:
+        os.environ["CORS_ALLOW_ORIGINS"] = original_origins
+
+    if original_origin_regex is None:
+        os.environ.pop("CORS_ALLOW_ORIGIN_REGEX", None)
+    else:
+        os.environ["CORS_ALLOW_ORIGIN_REGEX"] = original_origin_regex
+
+    get_settings.cache_clear()
+
+
+def test_cors_allows_chrome_extension_origin(cors_client) -> None:
+    response = cors_client.options(
         "/health",
         headers={
             "Origin": "chrome-extension://abcdefghijklmnop",
@@ -23,18 +42,14 @@ def test_cors_allows_chrome_extension_origin(monkeypatch) -> None:
     )
 
     assert response.status_code == 200
-    assert response.headers["access-control-allow-origin"] == "chrome-extension://abcdefghijklmnop"
+    assert (
+        response.headers["access-control-allow-origin"]
+        == "chrome-extension://abcdefghijklmnop"
+    )
 
-    get_settings.cache_clear()
 
-
-def test_cors_rejects_unconfigured_origin(monkeypatch) -> None:
-    monkeypatch.setenv("CORS_ALLOW_ORIGINS", "https://api.rafaellapontes.com.br")
-    monkeypatch.setenv("CORS_ALLOW_ORIGIN_REGEX", r"chrome-extension://.*")
-    get_settings.cache_clear()
-    client = build_client()
-
-    response = client.options(
+def test_cors_rejects_unconfigured_origin(cors_client) -> None:
+    response = cors_client.options(
         "/health",
         headers={
             "Origin": "https://evil.example.com",
@@ -44,5 +59,3 @@ def test_cors_rejects_unconfigured_origin(monkeypatch) -> None:
 
     assert response.status_code == 400
     assert "access-control-allow-origin" not in response.headers
-
-    get_settings.cache_clear()
