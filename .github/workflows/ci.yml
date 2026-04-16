@@ -26,10 +26,14 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Get changed files
         id: diff
-        uses: ./.github/actions/get-diff
+        uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46
+        with:
+          json: true
       - name: Run selective CI
         id: select
-        run: uv run --no-project python .github/scripts/selective_ci.py --changed-files-json '${{ steps.diff.outputs.changed_files_json }}' --github-output "$GITHUB_OUTPUT"
+        env:
+          CHANGED_FILES: ${{ steps.diff.outputs.all_changed_files }}
+        run: uv run --no-project python .github/scripts/selective_ci.py --changed-files-json "$CHANGED_FILES" --github-output "$GITHUB_OUTPUT"
 
   compliance:
     runs-on: ubuntu-latest
