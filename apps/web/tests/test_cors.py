@@ -12,24 +12,25 @@ def cors_client() -> TestClient:
     original_origins = os.environ.get("CORS_ALLOW_ORIGINS")
     original_origin_regex = os.environ.get("CORS_ALLOW_ORIGIN_REGEX")
 
-    os.environ["CORS_ALLOW_ORIGINS"] = "https://api.rafaellapontes.com.br"
-    os.environ["CORS_ALLOW_ORIGIN_REGEX"] = r"chrome-extension://.*"
-    get_settings.cache_clear()
+    try:
+        os.environ["CORS_ALLOW_ORIGINS"] = "https://api.rafaellapontes.com.br"
+        os.environ["CORS_ALLOW_ORIGIN_REGEX"] = r"chrome-extension://.*"
+        get_settings.cache_clear()
 
-    client = TestClient(create_app())
-    yield client
+        with TestClient(create_app()) as client:
+            yield client
+    finally:
+        if original_origins is None:
+            os.environ.pop("CORS_ALLOW_ORIGINS", None)
+        else:
+            os.environ["CORS_ALLOW_ORIGINS"] = original_origins
 
-    if original_origins is None:
-        os.environ.pop("CORS_ALLOW_ORIGINS", None)
-    else:
-        os.environ["CORS_ALLOW_ORIGINS"] = original_origins
+        if original_origin_regex is None:
+            os.environ.pop("CORS_ALLOW_ORIGIN_REGEX", None)
+        else:
+            os.environ["CORS_ALLOW_ORIGIN_REGEX"] = original_origin_regex
 
-    if original_origin_regex is None:
-        os.environ.pop("CORS_ALLOW_ORIGIN_REGEX", None)
-    else:
-        os.environ["CORS_ALLOW_ORIGIN_REGEX"] = original_origin_regex
-
-    get_settings.cache_clear()
+        get_settings.cache_clear()
 
 
 def test_cors_allows_chrome_extension_origin(cors_client) -> None:
