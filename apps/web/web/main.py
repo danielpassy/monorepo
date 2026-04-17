@@ -18,6 +18,7 @@ def create_app() -> FastAPI:
     if settings.sentry_dsn:
         sentry_sdk.init(
             dsn=settings.sentry_dsn,
+            environment="development" if settings.debug else "production",
             traces_sample_rate=1.0,
         )
     configure_google_oauth()

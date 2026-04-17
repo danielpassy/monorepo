@@ -7,12 +7,15 @@ import { router } from "./routes";
 import { settings } from "@/settings";
 import "./style.css";
 
-Sentry.init({
-  dsn: settings.sentryDsn,
-  integrations: [Sentry.browserTracingIntegration()],
-  tracesSampleRate: 1.0,
-  sendDefaultPii: true,
-});
+if (settings.sentryDsn) {
+  Sentry.init({
+    dsn: settings.sentryDsn,
+    environment: settings.debug ? "development" : "production",
+    integrations: [Sentry.browserTracingIntegration()],
+    tracesSampleRate: 1.0,
+    sendDefaultPii: true,
+  });
+}
 
 const queryClient = new QueryClient();
 
