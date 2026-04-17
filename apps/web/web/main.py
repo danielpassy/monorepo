@@ -56,6 +56,7 @@ def create_app() -> FastAPI:
     ) -> JSONResponse:
         import traceback
 
+        sentry_sdk.capture_exception(exc)
         traceback.print_exc()
         return JSONResponse(
             status_code=500, content={"detail": "internal server error"}

@@ -116,6 +116,33 @@ async def test_google_callback_sets_httponly_samesite_cookie(
     )
 
 
+async def test_google_callback_reports_oauth_errors(
+    db_session, redis, monkeypatch
+) -> None:
+    from unittest.mock import AsyncMock, Mock
+    from authlib.integrations.base_client.errors import OAuthError
+    import web.auth.oauth as auth_oauth
+
+    monkeypatch.setattr(
+        auth_oauth,
+        "exchange_google_code",
+        AsyncMock(side_effect=OAuthError("invalid_client", "bad secret")),
+    )
+    capture_exception = Mock()
+    monkeypatch.setattr("sentry_sdk.capture_exception", capture_exception)
+
+    # httpx needs a base URL to resolve relative paths when driving the ASGI app.
+    async with AsyncClient(
+        transport=ASGITransport(app=app, raise_app_exceptions=False),
+        base_url="http://test",
+    ) as c:
+        response = await c.get("/auth/google/callback", follow_redirects=False)
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "internal server error"}
+    capture_exception.assert_called_once()
+
+
 async def test_google_callback_sets_secure_cookie_when_enabled(
     db_session, redis, monkeypatch
 ) -> None:

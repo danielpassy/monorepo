@@ -50,3 +50,16 @@ def test_unhandled_error_returns_500(test_app) -> None:
     response = client.get("/_test/unhandled-error")
     assert response.status_code == 500
     assert response.json() == {"detail": "internal server error"}
+
+
+def test_unhandled_error_is_reported_to_sentry(test_app, monkeypatch) -> None:
+    from unittest.mock import Mock
+
+    capture_exception = Mock()
+    monkeypatch.setattr("sentry_sdk.capture_exception", capture_exception)
+
+    client = TestClient(test_app, raise_server_exceptions=False)
+    response = client.get("/_test/unhandled-error")
+
+    assert response.status_code == 500
+    capture_exception.assert_called_once()
