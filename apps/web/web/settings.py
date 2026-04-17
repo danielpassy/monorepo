@@ -33,7 +33,7 @@ class WebSettings(BaseSettings):
         default=("Authorization", "Content-Type")
     )
     cors_allow_credentials: bool = False
-    sentry_dsn: str = ""
+    sentry_dsn: str = "https://5769e9dcbef88ed9642b485ee53ec038@o4510981978128384.ingest.us.sentry.io/4511231779667968"
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
