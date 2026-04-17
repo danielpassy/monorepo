@@ -33,6 +33,7 @@ class WebSettings(BaseSettings):
         default=("Authorization", "Content-Type")
     )
     cors_allow_credentials: bool = False
+    sentry_dsn: str = ""
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

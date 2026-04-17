@@ -4,6 +4,9 @@ export const settings = {
   apiBaseUrl: env.VITE_API_BASE_URL ?? "http://localhost:8000",
   debug: env.DEV,
   mswEnabled: env.VITE_MSW_ENABLED === "true",
+  sentryDsn:
+    env.VITE_SENTRY_DSN ??
+    "https://09dfdb9d206eaffb1ec74342a4eb6124@o4510981978128384.ingest.us.sentry.io/4511231799459840",
 } as const;
 
 export function apiUrl(path: string): string {
