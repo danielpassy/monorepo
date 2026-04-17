@@ -8,6 +8,7 @@ import pytest
 import pytest_asyncio
 from fastapi import APIRouter
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 os.environ.setdefault("SECRET_KEY", "test-secret-key-change-in-tests")
@@ -67,9 +68,9 @@ async def db_session(create_tables):
     """Provide a clean AsyncSession bound to a rollback-only test transaction.
 
     The fixture opens a real connection, starts a transaction, and overrides the
-    FastAPI session dependency so app code uses that same session. The transaction
-    is rolled back after the test, which keeps every test isolated without having
-    to truncate tables manually.
+    FastAPI session dependency so app code uses that same session. A nested
+    transaction is restarted after each commit so the test can exercise real
+    commit behavior without leaking rows to later tests.
     """
     engine = _make_engine()
     async with engine.connect() as conn:
@@ -79,6 +80,12 @@ async def db_session(create_tables):
         )
 
         async with factory() as session:
+            await session.begin_nested()
+
+            @event.listens_for(session.sync_session, "after_transaction_end")
+            def _restart_nested_transaction(sess, trans) -> None:
+                if trans.nested and not trans._parent.nested:
+                    sess.begin_nested()
 
             async def _override():
                 yield session
@@ -87,6 +94,11 @@ async def db_session(create_tables):
             try:
                 yield session
             finally:
+                event.remove(
+                    session.sync_session,
+                    "after_transaction_end",
+                    _restart_nested_transaction,
+                )
                 app.dependency_overrides.pop(get_session, None)
                 await session.close()
                 await transaction.rollback()
