@@ -11,10 +11,6 @@
       "name": "frontend-app",
       "path": "apps/frontend"
     },
-    {
-      "name": "worker-app",
-      "path": "apps/worker"
-    }
   ],
   "settings": {
     "files.exclude": {
