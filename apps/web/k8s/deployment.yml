@@ -51,7 +51,7 @@ spec:
                 secretKeyRef:
                   name: web-secret
                   key: google_client_secret
-            - name: FRONTEND_BASE_URL
+            - name: FRONTEND_URL
               value: "https://app.rafaellapontes.com.br"
             - name: SESSION_COOKIE_DOMAIN
               value: "rafaellapontes.com.br"

@@ -101,7 +101,7 @@ async def test_google_callback_sets_httponly_samesite_cookie(
     settings = get_settings()
     monkeypatch.setattr(
         settings,
-        "frontend_base_url",
+        "frontend_url",
         "https://app.rafaellapontes.com.br",
     )
     monkeypatch.setattr(
@@ -143,7 +143,7 @@ async def test_google_callback_omits_cookie_domain_when_unset(
         email="cookie-nodomain@example.com",
         name="Cookie User",
     )
-    monkeypatch.setenv("FRONTEND_BASE_URL", "https://app.rafaellapontes.com.br")
+    monkeypatch.setenv("FRONTEND_URL", "https://app.rafaellapontes.com.br")
     if cookie_domain is None:
         monkeypatch.delenv("SESSION_COOKIE_DOMAIN", raising=False)
     else:

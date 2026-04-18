@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 from typing import Annotated
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
@@ -12,7 +12,7 @@ ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 class WebSettings(BaseSettings):
     app_name: str = "web-app"
     default_patient_id: str = "patient-dev-1"
-    frontend_base_url: str = "http://localhost:5173"
+    frontend_url: str = "http://localhost:5173"
     session_cookie_name: str = "sid"
     session_cookie_domain: str | None = None
     secret_key: str
@@ -24,9 +24,7 @@ class WebSettings(BaseSettings):
     )
     google_client_secret: str = ""
     debug: bool = False
-    cors_allow_origins: Annotated[tuple[str, ...], NoDecode] = Field(
-        default=("https://api.rafaellapontes.com.br",)
-    )
+    cors_allow_origins: Annotated[tuple[str, ...], NoDecode] = Field(default=())
     cors_allow_origin_regex: str = r"chrome-extension://.*"
     cors_allow_methods: Annotated[tuple[str, ...], NoDecode] = Field(
         default=("GET", "POST", "OPTIONS")
@@ -34,7 +32,7 @@ class WebSettings(BaseSettings):
     cors_allow_headers: Annotated[tuple[str, ...], NoDecode] = Field(
         default=("Authorization", "Content-Type")
     )
-    cors_allow_credentials: bool = False
+    cors_allow_credentials: bool = True
     sentry_dsn: str = "https://5769e9dcbef88ed9642b485ee53ec038@o4510981978128384.ingest.us.sentry.io/4511231779667968"
 
     model_config = SettingsConfigDict(
@@ -53,6 +51,13 @@ class WebSettings(BaseSettings):
             return tuple(item.strip() for item in value.split(",") if item.strip())
         return value
 
+    @field_validator("frontend_url", mode="before")
+    @classmethod
+    def normalize_frontend_url(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            return value.strip().rstrip("/")
+        return value
+
     @field_validator("session_cookie_domain", mode="before")
     @classmethod
     def normalize_session_cookie_domain(cls, value: Any) -> Any:
@@ -61,6 +66,12 @@ class WebSettings(BaseSettings):
             if not value:
                 return None
         return value
+
+    @model_validator(mode="after")
+    def default_cors_allow_origins(self) -> "WebSettings":
+        if not self.cors_allow_origins:
+            self.cors_allow_origins = (self.frontend_url,)
+        return self
 
 
 @lru_cache

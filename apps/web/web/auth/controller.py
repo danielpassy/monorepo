@@ -37,7 +37,7 @@ async def google_callback(
     session_id = await service.create_session(redis, user)
     signed = service.sign_session_id(session_id, settings.secret_key)
 
-    response = RedirectResponse(url=settings.frontend_base_url.rstrip("/") + "/")
+    response = RedirectResponse(url=settings.frontend_url + "/")
     response.set_cookie(
         key=settings.session_cookie_name,
         value=signed,
