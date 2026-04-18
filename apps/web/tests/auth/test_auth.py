@@ -129,7 +129,7 @@ async def test_google_callback_sets_httponly_samesite_cookie(
     assert "Domain=rafaellapontes.com.br" in cookie_header
 
 
-@pytest.mark.parametrize("cookie_domain", [None, "   ", ""])
+@pytest.mark.parametrize("cookie_domain", [None, "", "   "])
 async def test_google_callback_omits_cookie_domain_when_unset(
     db_session, redis, monkeypatch, cookie_domain
 ) -> None:
@@ -143,24 +143,25 @@ async def test_google_callback_omits_cookie_domain_when_unset(
         email="cookie-nodomain@example.com",
         name="Cookie User",
     )
-    settings = get_settings()
-    monkeypatch.setattr(
-        settings,
-        "frontend_base_url",
-        "https://app.rafaellapontes.com.br",
-    )
-    monkeypatch.setattr(settings, "session_cookie_domain", cookie_domain)
+    monkeypatch.setenv("FRONTEND_BASE_URL", "https://app.rafaellapontes.com.br")
+    if cookie_domain is None:
+        monkeypatch.delenv("SESSION_COOKIE_DOMAIN", raising=False)
+    else:
+        monkeypatch.setenv("SESSION_COOKIE_DOMAIN", cookie_domain)
+    get_settings.cache_clear()
     monkeypatch.setattr(
         auth_oauth, "exchange_google_code", AsyncMock(return_value=fake_userinfo)
     )
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as c:
+            response = await c.get("/auth/google/callback", follow_redirects=False)
 
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as c:
-        response = await c.get("/auth/google/callback", follow_redirects=False)
-
-    cookie_header = response.headers.get("set-cookie", "")
-    assert "Domain=" not in cookie_header
+        cookie_header = response.headers.get("set-cookie", "")
+        assert "Domain=" not in cookie_header
+    finally:
+        get_settings.cache_clear()
 
 
 async def test_google_callback_reports_oauth_errors(
