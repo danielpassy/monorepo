@@ -1,3 +1,4 @@
+import pytest
 from httpx import ASGITransport, AsyncClient
 from starlette.responses import RedirectResponse
 
@@ -126,6 +127,40 @@ async def test_google_callback_sets_httponly_samesite_cookie(
         or "samesite=lax" in cookie_header.lower()
     )
     assert "Domain=rafaellapontes.com.br" in cookie_header
+
+
+@pytest.mark.parametrize("cookie_domain", [None, "   ", ""])
+async def test_google_callback_omits_cookie_domain_when_unset(
+    db_session, redis, monkeypatch, cookie_domain
+) -> None:
+    from unittest.mock import AsyncMock
+
+    import web.auth.oauth as auth_oauth
+    from web.auth.oauth import OAuthUserInfo
+
+    fake_userinfo = OAuthUserInfo(
+        sub="g-cookie-test-no-domain",
+        email="cookie-nodomain@example.com",
+        name="Cookie User",
+    )
+    settings = get_settings()
+    monkeypatch.setattr(
+        settings,
+        "frontend_base_url",
+        "https://app.rafaellapontes.com.br",
+    )
+    monkeypatch.setattr(settings, "session_cookie_domain", cookie_domain)
+    monkeypatch.setattr(
+        auth_oauth, "exchange_google_code", AsyncMock(return_value=fake_userinfo)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as c:
+        response = await c.get("/auth/google/callback", follow_redirects=False)
+
+    cookie_header = response.headers.get("set-cookie", "")
+    assert "Domain=" not in cookie_header
 
 
 async def test_google_callback_reports_oauth_errors(

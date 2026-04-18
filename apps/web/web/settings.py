@@ -53,6 +53,15 @@ class WebSettings(BaseSettings):
             return tuple(item.strip() for item in value.split(",") if item.strip())
         return value
 
+    @field_validator("session_cookie_domain", mode="before")
+    @classmethod
+    def normalize_session_cookie_domain(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                return None
+        return value
+
 
 @lru_cache
 def get_settings() -> WebSettings:
