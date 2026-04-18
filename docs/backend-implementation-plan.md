@@ -47,7 +47,7 @@ AC:
 
 ### Endpoints
 - `GET /auth/google` — redirect to Google consent screen
-- `GET /auth/google/callback` — exchange code, create session, set cookie, redirect to `/dashboard`
+- `GET /auth/google/callback` — exchange code, create session, set cookie, redirect to the frontend home page
 - `GET /auth/me` → 200 user or 401
 - `POST /auth/logout` → 200, invalidate cookie
 

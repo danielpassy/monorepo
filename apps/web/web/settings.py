@@ -12,7 +12,9 @@ ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 class WebSettings(BaseSettings):
     app_name: str = "web-app"
     default_patient_id: str = "patient-dev-1"
+    frontend_base_url: str = "http://localhost:5173"
     session_cookie_name: str = "sid"
+    session_cookie_domain: str | None = None
     secret_key: str
     cookie_secure: bool = False
     database_url: str = "postgresql+asyncpg://monorepo:monorepo@localhost:5432/monorepo"
@@ -49,6 +51,15 @@ class WebSettings(BaseSettings):
     def split_csv(cls, value: Any) -> Any:
         if isinstance(value, str):
             return tuple(item.strip() for item in value.split(",") if item.strip())
+        return value
+
+    @field_validator("session_cookie_domain", mode="before")
+    @classmethod
+    def normalize_session_cookie_domain(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                return None
         return value
 
 

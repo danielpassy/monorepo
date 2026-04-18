@@ -37,7 +37,7 @@ async def google_callback(
     session_id = await service.create_session(redis, user)
     signed = service.sign_session_id(session_id, settings.secret_key)
 
-    response = RedirectResponse(url="/dashboard")
+    response = RedirectResponse(url=settings.frontend_base_url.rstrip("/") + "/")
     response.set_cookie(
         key=settings.session_cookie_name,
         value=signed,
@@ -45,6 +45,7 @@ async def google_callback(
         samesite="lax",
         secure=settings.cookie_secure,
         max_age=service.SESSION_TTL_SECONDS,
+        domain=settings.session_cookie_domain,
     )
     return response
 
@@ -75,6 +76,7 @@ async def dev_login(
         samesite="lax",
         secure=settings.cookie_secure,
         max_age=service.SESSION_TTL_SECONDS,
+        domain=settings.session_cookie_domain,
     )
     return {"user_id": user.id, "email": user.email, "name": user.name}
 
@@ -100,5 +102,8 @@ async def logout(
         if session_id:
             await service.delete_session(redis, session_id)
 
-    response.delete_cookie(key=settings.session_cookie_name)
+    response.delete_cookie(
+        key=settings.session_cookie_name,
+        domain=settings.session_cookie_domain,
+    )
     return {"detail": "logged out"}
