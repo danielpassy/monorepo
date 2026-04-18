@@ -97,6 +97,17 @@ async def test_google_callback_sets_httponly_samesite_cookie(
     fake_userinfo = OAuthUserInfo(
         sub="g-cookie-test", email="cookie@example.com", name="Cookie User"
     )
+    settings = get_settings()
+    monkeypatch.setattr(
+        settings,
+        "frontend_base_url",
+        "https://app.rafaellapontes.com.br",
+    )
+    monkeypatch.setattr(
+        settings,
+        "session_cookie_domain",
+        "rafaellapontes.com.br",
+    )
     monkeypatch.setattr(
         auth_oauth, "exchange_google_code", AsyncMock(return_value=fake_userinfo)
     )
@@ -106,7 +117,7 @@ async def test_google_callback_sets_httponly_samesite_cookie(
     ) as c:
         response = await c.get("/auth/google/callback", follow_redirects=False)
 
-    settings = get_settings()
+    assert response.headers["location"] == "https://app.rafaellapontes.com.br/"
     cookie_header = response.headers.get("set-cookie", "")
     assert settings.session_cookie_name in cookie_header
     assert "HttpOnly" in cookie_header
@@ -114,6 +125,7 @@ async def test_google_callback_sets_httponly_samesite_cookie(
         "SameSite=lax" in cookie_header.lower()
         or "samesite=lax" in cookie_header.lower()
     )
+    assert "Domain=rafaellapontes.com.br" in cookie_header
 
 
 async def test_google_callback_reports_oauth_errors(
