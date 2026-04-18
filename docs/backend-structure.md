@@ -11,7 +11,7 @@
 ## App bootstrap
 - Factory pattern: `web/app.py::create_app()` returns FastAPI instance
 - Entry point: `entrypoint.py` runs uvicorn on 0.0.0.0:8000
-- Settings: `WebSettings(BaseSettings)` loaded from `.env`, accessed via LRU-cached `get_settings()`
+- Settings: `WebSettings(BaseSettings)` loaded from `.env` in local development only; production config comes from the runtime environment. Settings are accessed via LRU-cached `get_settings()`
 - Monorepo: shared packages symlinked under `web/_shared/`
 - Migrations: Alembic lives in `web/migrations/` with `web/migrations/alembic.ini` as the entrypoint
 

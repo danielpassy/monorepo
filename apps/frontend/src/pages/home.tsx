@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Calendar, Plus, Users } from "lucide-react";
 import { useCustomers, useCreateCustomer } from "@/hooks/useCustomers";
-import { useCreateSession } from "@/hooks/useSessions";
+import { useCreateSession, useSessions } from "@/hooks/useSessions";
 import { getClientInitials } from "./home.logic";
 
 const formatLocalDate = (value: Date) => {
@@ -169,15 +169,36 @@ function ClientCard({
   onNavigate,
 }: ClientCardProps) {
   const createSession = useCreateSession(clientId);
+  const { data: sessions = [], isLoading: sessionsLoading } = useSessions(clientId);
   const initials = getClientInitials(clientName);
+  const latestSession = [...sessions].sort((a, b) => b.session_number - a.session_number)[0];
 
   const handleNewSession = () => {
     const today = formatLocalDate(new Date());
     createSession.mutate({ date: today }, { onSuccess: (session) => onNavigate(session.id) });
   };
 
+  const handleOpenLastSession = () => {
+    if (!latestSession) return;
+    onNavigate(latestSession.id);
+  };
+
   return (
-    <Card className="transition-shadow hover:shadow-md">
+    <Card
+      className={`transition-shadow ${
+        latestSession && !sessionsLoading ? "cursor-pointer hover:shadow-md" : ""
+      }`}
+      role={latestSession ? "button" : undefined}
+      tabIndex={latestSession ? 0 : undefined}
+      onClick={handleOpenLastSession}
+      onKeyDown={(e) => {
+        if (!latestSession) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleOpenLastSession();
+        }
+      }}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -192,7 +213,10 @@ function ClientCard({
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleNewSession}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNewSession();
+            }}
             disabled={createSession.isPending}
           >
             <Plus className="mr-1 size-4" />
