@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Meet Session Capture",
+  "version": "0.1.0",
+  "description": "Capture Google Meet session audio and upload it to your connected backend.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": ["activeTab"],
+  "host_permissions": [
+    "https://meet.google.com/*",
+    "https://api.rafaellapontes.com.br/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://meet.google.com/*"],
+      "js": ["content-google-meet.js"],
+      "run_at": "document_idle",
+      "world": "ISOLATED"
+    }
+  ],
+  "action": {
+    "default_title": "Meet Session Capture",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    },
+    "default_popup": "popup.html"
+  }
+}
