@@ -13,7 +13,6 @@ It focuses on a few practical topics:
 ## What is in here
 
 - `apps/web` - FastAPI web service
-- `apps/worker` - async worker service
 - `apps/frontend` - frontend application
 - `apps/transcription-extension-chrome` - Chrome extension experiments
 - `infra/k8s` - shared Kubernetes manifests

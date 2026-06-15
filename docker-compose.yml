@@ -28,10 +28,14 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      additional_contexts:
+        base: service:base
       args:
-        BASE_IMAGE: monorepo-python-base:dev
+        BASE_IMAGE: base
     environment:
       DATABASE_URL: postgresql+asyncpg://monorepo:monorepo@postgres:5432/monorepo
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: local-dev-secret-key
     ports:
       - "8001:8000"
     depends_on:
@@ -42,20 +46,6 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
-
-  worker:
-    image: monorepo-worker:dev
-    build:
-      context: .
-      dockerfile: apps/worker/Dockerfile
-      args:
-        BASE_IMAGE: monorepo-python-base:dev
-    environment:
-      DATABASE_URL: postgresql+asyncpg://monorepo:monorepo@postgres:5432/worker_app
-      CELERY_BROKER_URL: redis://redis:6379/0
-    depends_on:
-      postgres:
-        condition: service_healthy
 
 volumes:
   postgres-data:
