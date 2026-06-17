@@ -76,15 +76,7 @@ AC:
 
 ---
 
-## 5. Worker — DATABASE_URL in k8s
-- Add `DATABASE_URL` env var to `apps/worker/k8s/deployment.yml` (from secret)
-- Mirror `WebSettings` pattern in `WorkerSettings` with `DATABASE_URL` field
-
-AC: worker pod has DB access in production
-
----
-
-## 6. CI test infrastructure
+## 5. CI test infrastructure
 - CI: GitHub Actions with postgres service container
 - `conftest.py`: `AsyncSession` fixture wrapped in transaction, rolled back after each test
 - Override `get_session` dependency in tests to use rolled-back session

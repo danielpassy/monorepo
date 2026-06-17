@@ -35,7 +35,6 @@ def compute_selection(changed_files: list[str]) -> dict[str, object]:
         "changed_files": changed_files,
         "infra": infra_changed,
         "web": "web" in affected_apps,
-        "worker": "worker" in affected_apps,
         "frontend": "frontend" in affected_apps,
     }
 
@@ -44,7 +43,6 @@ def write_github_outputs(output_path: str, selection: dict[str, object]) -> None
     output_lines = [
         f"infra={str(selection['infra']).lower()}",
         f"web={str(selection['web']).lower()}",
-        f"worker={str(selection['worker']).lower()}",
         f"frontend={str(selection['frontend']).lower()}",
     ]
     Path(output_path).write_text("\n".join(output_lines) + "\n")
