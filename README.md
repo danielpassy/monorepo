@@ -40,3 +40,41 @@ cp .env.example .env
 ```
 
 Then build or run the specific app from the monorepo root so shared dependencies are available.
+
+## Sandbox
+
+Agents and developers can run isolated experiments inside sandboxes. A sandbox is a Docker environment with the repo mounted and isolated PostgreSQL and Redis instances.
+
+Start or enter the current worktree sandbox:
+
+```bash
+sandbox/run shell
+```
+
+Stop it without removing resources:
+
+```bash
+sandbox/run stop
+```
+
+Destroy it and remove volumes:
+
+```bash
+sandbox/run destroy
+```
+
+Inside the sandbox, the repo is mounted at `/workspace`. `DATABASE_URL`, `REDIS_URL`, and `CELERY_BROKER_URL` are pre-set for the sandbox's own services.
+
+Run the backend directly from inside the sandbox:
+
+```bash
+cd /workspace/apps/web && uv run python dev.py
+```
+
+Run the frontend:
+
+```bash
+cd /workspace/apps/frontend && vp dev
+```
+
+Multiple sandboxes can run in parallel. Each one gets isolated infrastructure through Docker Compose project names.

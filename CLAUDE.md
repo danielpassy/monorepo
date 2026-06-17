@@ -1,52 +1,45 @@
-# Monorepo
+# Monorepo Agent Guide
 
-## Project structure
+This file is an index for agents. Keep detailed implementation, runtime, and onboarding instructions in app-level guides or docs.
 
-This is a Python + TypeScript monorepo with two main apps:
+## Project Map
 
-- `apps/web/` — Django backend
-- `apps/frontend/` — React frontend (Vite+)
+| Path | Purpose |
+|------|---------|
+| `apps/web/` | FastAPI backend |
+| `apps/frontend/` | React frontend using Vite+ |
+| `apps/agent/` | Agent service workspace |
+| `shared/` | Shared functionality, such as logging and protobuf contracts |
+| `docs/` | Architecture, process, and implementation docs |
+| `docs/projects/` | Per-feature project plans, contracts, reviews, and verification notes |
+| `infra/k8s/` | Deployment manifests |
+| `infra/terraform/` | Hetzner Cloud provisioning |
+| `local/` | Local setup assets |
 
-Before working on either app, read the relevant architecture doc:
+## Required Context
 
-- **Backend work:** read `docs/backend-structure.md`
-- **Frontend work:** read `docs/frontend-structure.md`
+Before editing an area, read its local instructions first, then the relevant docs.
 
-## Sandbox
+| Area | Required Context |
+|------|------------------|
+| `apps/web/` | `docs/backend-structure.md` |
+| `apps/frontend/` | `apps/frontend/AGENTS.md`, `docs/frontend-structure.md` |
+| `apps/agent/` | Local app instructions and agent docs, when present |
+| `shared/` | The touched package's README/docs and all known consumers |
+| `infra/` | `docs/infra-spec.md` |
 
-Agents run inside sandboxes — Docker containers with all tooling pre-installed and access to isolated postgres + redis. The sandbox mounts the repo and host credentials (Claude Code, Codex).
+Runtime commands belong in each app's local agent guide, not in this root index.
 
-### Starting a sandbox
+## Feature Work
 
-```sh
-sandbox/run shell        # start and enter the current worktree sandbox
-```
+For feature development, follow `docs/feature-development-cycle.md`.
 
-### Entering a sandbox
+Store all relevant project artifacts under `docs/projects/{project-name}/`.
 
-```sh
-sandbox/run shell           # current worktree sandbox
-```
+Do not start implementation until `docs/projects/{project-name}/product-plan.md` has been accepted by a human, unless the user explicitly asks for a direct implementation.
 
-### Other commands
+## Cross-Area Changes
 
-```sh
-sandbox/run stop            # stop without removing
-sandbox/run destroy         # tear down + remove volumes
-```
-
-### Inside the sandbox
-
-The repo is mounted at `/workspace`. Environment variables `DATABASE_URL`, `REDIS_URL`, and `CELERY_BROKER_URL` are pre-set pointing at the sandbox's own postgres and redis. Host credentials for Claude Code, Codex, and GitHub CLI are mounted read-write from `~/.claude`, `~/.codex`, `~/.config/gh`, and `~/.claude.json`.
-
-Run the backend directly (not as a container):
-```sh
-cd /workspace/apps/web && uv run manage.py runserver 0.0.0.0:8000
-```
-
-Run the frontend:
-```sh
-cd /workspace/apps/frontend && vp dev
-```
-
-Multiple sandboxes can run in parallel — each gets its own isolated infra via Docker Compose project names.
+- For frontend/backend changes, keep API contracts and generated clients in sync.
+- For shared package changes, check every consumer before changing public APIs.
+- For infrastructure changes, review the plan before apply. Never commit Terraform state, tfvars, or generated plan files.
