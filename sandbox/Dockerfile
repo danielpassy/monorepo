@@ -19,13 +19,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Python tooling
 RUN pip install --no-cache-dir --upgrade pip "uv==${UV_VERSION}"
 
-# Codex (global npm)
-RUN npm install -g @openai/codex
-
 # Non-root user (CC refuses --dangerously-skip-permissions as root)
 RUN useradd -m -s /bin/bash agent
 USER agent
-ENV PATH="/home/agent/.local/bin:${PATH}"
+ENV PATH="/home/agent/.local/bin:${PATH}" \
+    NPM_CONFIG_PREFIX="/home/agent/.local"
+
+# Codex (user-local npm so it stays updatable inside the sandbox)
+RUN npm install -g @openai/codex
 
 # Claude Code (native installer — must run as non-root)
 RUN curl -fsSL https://claude.ai/install.sh | bash

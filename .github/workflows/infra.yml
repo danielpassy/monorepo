@@ -22,6 +22,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v5
       - name: Run infra checks
@@ -30,6 +31,7 @@ jobs:
   apply:
     needs: validate
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     if: inputs.event_name == 'push'
     environment: production
     defaults:

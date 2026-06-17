@@ -24,10 +24,9 @@
 
 ### docker-compose (local dev)
 - `postgres:17` — single shared DB: `monorepo`
-- `redis:7-alpine` — Celery broker for worker app
+- `redis:7-alpine` — session store for the web app
 - `web` — FastAPI app, port 8001→8000, `DATABASE_URL`→`monorepo`
-- `worker` — Celery worker, `DATABASE_URL`→`monorepo`, `CELERY_BROKER_URL`→redis
-- `base` — shared base Docker image (`monorepo-python-base:dev`) used by web and worker builds
+- `base` — shared base Docker image (`monorepo-python-base:dev`) used by web builds
 
 ### Kubernetes (production — k3s on Hetzner)
 - Namespace: `monorepo`

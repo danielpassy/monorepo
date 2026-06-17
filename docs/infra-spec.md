@@ -2,7 +2,7 @@
 
 ## Overview
 
-Deploy the monorepo apps (web + worker) on two Hetzner Cloud VMs running k3s.
+Deploy the monorepo apps on two Hetzner Cloud VMs running k3s.
 Target: minimal cost, simple operations, good enough for production-light workloads.
 
 ## Nodes
@@ -16,7 +16,7 @@ Total compute: ~€9/mo.
 
 **Node 1 (server):** k3s control plane + Traefik ingress + web app + SQLite.
 
-**Node 2 (agent):** k3s agent + worker app.
+**Node 2 (agent):** k3s agent for cluster capacity.
 
 > ARM (CAX11, ~€3.99/mo) is cheaper but requires multi-arch Docker builds.
 > Start with x86 (CX22) to keep builds simple. Revisit ARM later.
@@ -87,8 +87,7 @@ Node 1 (server, CX22)
 └── backup CronJob
 
 Node 2 (agent, CX22)
-├── k3s agent
-└── worker deployment (Celery)
+└── k3s agent
 ```
 
 ## k8s Manifests (to create)
@@ -100,8 +99,6 @@ infra/
 │   ├── deployment.yaml
 │   ├── service.yaml
 │   └── ingress.yaml
-├── worker/
-│   └── deployment.yaml
 ├── storage/
 │   └── pv-sqlite.yaml
 └── backup/

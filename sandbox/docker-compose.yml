@@ -29,7 +29,5 @@ services:
   # Disable app services — the agent runs them directly
   web:
     profiles: [disabled]
-  worker:
-    profiles: [disabled]
   base:
     profiles: [disabled]

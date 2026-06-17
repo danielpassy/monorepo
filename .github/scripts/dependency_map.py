@@ -5,7 +5,7 @@ INFRA_PATHS = [
     ".github/workflows/infra.yml",
 ]
 
-# Changes that affect all Python backend apps (web, worker)
+# Changes that affect Python backend apps.
 BACKEND_SHARED_PATHS = [
     "pyproject.toml",
     ".python-version",
@@ -18,14 +18,6 @@ APPS = {
         "paths": ["apps/web/**"] + BACKEND_SHARED_PATHS,
         "ci_paths": [
             ".github/workflows/web.yml",
-            ".github/actions/**",
-            ".github/scripts/**",
-        ],
-    },
-    "worker": {
-        "paths": ["apps/worker/**"] + BACKEND_SHARED_PATHS,
-        "ci_paths": [
-            ".github/workflows/worker.yml",
             ".github/actions/**",
             ".github/scripts/**",
         ],

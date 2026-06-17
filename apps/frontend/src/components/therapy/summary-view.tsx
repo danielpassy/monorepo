@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, RefreshCw, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,19 +30,39 @@ export function SummaryView({
   isGenerating = false,
 }: SummaryViewProps) {
   const [localValue, setLocalValue] = useState(value);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    if (localValue !== value) {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+
+      setIsSaving(true);
+      saveTimeoutRef.current = setTimeout(() => {
+        onChange(localValue);
+        if (onSave) onSave(localValue);
+        setIsSaving(false);
+        setLastSaved(new Date());
+      }, 800);
+    }
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [localValue, value, onChange, onSave]);
 
   const handleChange = (newValue: string) => {
     setLocalValue(newValue);
-    onChange(newValue);
-    if (onSave) onSave(newValue);
   };
-
-  // Sync when external value changes (e.g. after generate)
-  useEffect(() => {
-    if (!isGenerating) {
-      setLocalValue(value);
-    }
-  }, [value, isGenerating]);
 
   if (!value && !localValue && !isGenerating) {
     return (
@@ -85,6 +105,7 @@ export function SummaryView({
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Check className="size-3" />
           <span>Resumo gerado (editável)</span>
+          {isSaving ? <span>Salvando...</span> : lastSaved ? <span>Salvo</span> : null}
         </div>
         <AlertDialog>
           <AlertDialogTrigger asChild>

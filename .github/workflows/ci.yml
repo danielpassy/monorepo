@@ -14,9 +14,9 @@ permissions:
 jobs:
   changes:
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     outputs:
       web: ${{ steps.select.outputs.web }}
-      worker: ${{ steps.select.outputs.worker }}
       frontend: ${{ steps.select.outputs.frontend }}
       infra: ${{ steps.select.outputs.infra }}
     steps:
@@ -37,6 +37,7 @@ jobs:
 
   compliance:
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v5
       - name: Run compliance checks
@@ -44,6 +45,7 @@ jobs:
 
   ci-scripts:
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v5
         with:
@@ -56,15 +58,6 @@ jobs:
     needs: changes
     if: needs.changes.outputs.web == 'true'
     uses: ./.github/workflows/web.yml
-    with:
-      event_name: ${{ github.event_name }}
-    secrets:
-      KUBECONFIG_B64: ${{ secrets.KUBECONFIG_B64 }}
-
-  worker:
-    needs: changes
-    if: needs.changes.outputs.worker == 'true'
-    uses: ./.github/workflows/worker.yml
     with:
       event_name: ${{ github.event_name }}
     secrets:
