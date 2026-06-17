@@ -15,6 +15,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     defaults:
       run:
         working-directory: apps/frontend
@@ -38,6 +39,7 @@ jobs:
     needs: test
     if: inputs.event_name == 'push'
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     environment: production
     defaults:
       run:
