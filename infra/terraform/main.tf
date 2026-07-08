@@ -15,23 +15,6 @@ terraform {
       version = "~> 5.0"
     }
   }
-
-  backend "s3" {
-    bucket = "13957464-tf-state"
-    key    = "infra/terraform.tfstate"
-    region = "hel1"
-
-    endpoints = {
-      s3 = "https://hel1.your-objectstorage.com"
-    }
-
-    skip_credentials_validation = true
-    skip_metadata_api_check     = true
-    skip_region_validation      = true
-    skip_requesting_account_id  = true
-    skip_s3_checksum            = true
-    use_path_style              = true
-  }
 }
 
 provider "hcloud" {
@@ -39,7 +22,7 @@ provider "hcloud" {
 }
 
 provider "aws" {
-  region     = "hel1"
+  region = "hel1"
   endpoints {
     s3 = "https://hel1.your-objectstorage.com"
   }
@@ -118,11 +101,11 @@ resource "hcloud_firewall" "cluster" {
 # --- Server Node (k3s server) ---
 
 resource "hcloud_server" "server" {
-  name        = "monorepo-server"
-  server_type = "cx23"
-  image       = "ubuntu-24.04"
-  location    = "nbg1"
-  ssh_keys    = [data.hcloud_ssh_key.default.id, data.hcloud_ssh_key.ci.id]
+  name         = "monorepo-server"
+  server_type  = "cx23"
+  image        = "ubuntu-24.04"
+  location     = "nbg1"
+  ssh_keys     = [data.hcloud_ssh_key.default.id, data.hcloud_ssh_key.ci.id]
   firewall_ids = [hcloud_firewall.cluster.id]
 
   user_data = templatefile("${path.module}/cloud-init/server.yaml", {
@@ -187,11 +170,11 @@ data "remote_file" "kubeconfig" {
 # --- Agent Node (k3s agent) ---
 
 resource "hcloud_server" "agent" {
-  name        = "monorepo-agent"
-  server_type = "cx23"
-  image       = "ubuntu-24.04"
-  location    = "nbg1"
-  ssh_keys    = [data.hcloud_ssh_key.default.id, data.hcloud_ssh_key.ci.id]
+  name         = "monorepo-agent"
+  server_type  = "cx23"
+  image        = "ubuntu-24.04"
+  location     = "nbg1"
+  ssh_keys     = [data.hcloud_ssh_key.default.id, data.hcloud_ssh_key.ci.id]
   firewall_ids = [hcloud_firewall.cluster.id]
 
   user_data = templatefile("${path.module}/cloud-init/agent.yaml", {
