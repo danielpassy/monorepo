@@ -8,6 +8,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from web.auth.controller import router as auth_router
 from web.auth.oauth import configure_google_oauth
 from web.customers.controller import router as customers_router
+from web.frontend import add_frontend_routes
 from web.middleware.auth import AuthMiddleware
 from web.settings import get_settings
 from web.sessions.controller import router as sessions_router
@@ -65,6 +66,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(customers_router)
     app.include_router(sessions_router)
+    add_frontend_routes(app, settings.frontend_dist_dir)
 
     return app
 

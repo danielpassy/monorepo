@@ -15,11 +15,39 @@ PUBLIC_ROUTES = {
     ("POST", "/auth/dev-login"),
 }
 
+FRONTEND_PUBLIC_PATHS = {
+    "/",
+    "/assets",
+    "/favicon.svg",
+    "/icons.svg",
+    "/mockServiceWorker.js",
+}
+
+FRONTEND_PUBLIC_PREFIXES = ("/assets/",)
+
+
+def is_frontend_static_request(method: str, path: str) -> bool:
+    if method in {"GET", "HEAD"}:
+        if path in FRONTEND_PUBLIC_PATHS:
+            return True
+        return path.startswith(FRONTEND_PUBLIC_PREFIXES)
+    return False
+
+
+def is_public_request(method: str, path: str) -> bool:
+    return (method, path) in PUBLIC_ROUTES or is_frontend_static_request(method, path)
+
 
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
         method = request.method
         path = request.url.path
+
+        # Static files never need user context. Avoid a Redis lookup for every asset
+        # when an authenticated browser sends its domain-scoped session cookie.
+        if is_frontend_static_request(method, path):
+            return await call_next(request)
+
         is_public = (method, path) in PUBLIC_ROUTES
 
         settings = get_settings()

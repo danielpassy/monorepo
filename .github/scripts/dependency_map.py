@@ -15,7 +15,7 @@ BACKEND_SHARED_PATHS = [
 
 APPS = {
     "web": {
-        "paths": ["apps/web/**"] + BACKEND_SHARED_PATHS,
+        "paths": ["apps/web/**", "apps/frontend/**"] + BACKEND_SHARED_PATHS,
         "ci_paths": [
             ".github/workflows/web.yml",
             ".github/actions/**",

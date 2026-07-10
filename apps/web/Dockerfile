@@ -13,5 +13,6 @@ COPY apps/web/tests ./tests
 COPY shared/logging /shared/logging
 RUN uv sync --frozen
 
+COPY apps/frontend/dist ./frontend
 
 CMD ["uv", "run", "python", "entrypoint.py"]

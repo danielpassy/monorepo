@@ -14,8 +14,8 @@ infra/secrets.txt
 # Terraform
 **/.terraform/
 *.tfstate
-!infra/terraform/terraform.tfstate
 *.tfstate.backup
+infra/terraform/local-state/
 *.tfvars
 tfplan
 .terraform.lock.hcl
