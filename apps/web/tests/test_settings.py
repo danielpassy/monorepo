@@ -26,7 +26,7 @@ def test_settings_parse_csv_and_bool(monkeypatch) -> None:
 
 def test_cors_defaults_to_frontend_url(monkeypatch) -> None:
     monkeypatch.setenv("FRONTEND_URL", "https://app.example.com/")
-    monkeypatch.delenv("CORS_ALLOW_ORIGINS", raising=False)
+    monkeypatch.setenv("CORS_ALLOW_ORIGINS", "")
     get_settings.cache_clear()
 
     settings = get_settings()

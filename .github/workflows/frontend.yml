@@ -6,11 +6,6 @@ on:
       event_name:
         required: true
         type: string
-    secrets:
-      S3_ACCESS_KEY_ID:
-        required: false
-      S3_SECRET_ACCESS_KEY:
-        required: false
 
 jobs:
   test:
@@ -34,36 +29,3 @@ jobs:
         run: vp test
       - name: Build
         run: vp build
-
-  deploy:
-    needs: test
-    if: inputs.event_name == 'push'
-    runs-on: ubuntu-latest
-    timeout-minutes: 50
-    environment: production
-    defaults:
-      run:
-        working-directory: apps/frontend
-    steps:
-      - uses: actions/checkout@v5
-      - uses: voidzero-dev/setup-vp@v1
-        with:
-          cache: true
-      - name: Install dependencies
-        run: vp install
-      - name: Run codegen
-        run: vp run codegen
-      - name: Build for production
-        env:
-          VITE_API_BASE_URL: https://api.rafaellapontes.com.br
-        run: vp build
-      - name: Upload to S3
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: hel1
-        run: |
-          aws s3 sync dist/ s3://monorepo-frontend/ \
-            --endpoint-url https://hel1.your-objectstorage.com \
-            --acl public-read \
-            --delete

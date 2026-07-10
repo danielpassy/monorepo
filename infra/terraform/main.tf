@@ -10,10 +10,6 @@ terraform {
       source  = "tenstad/remote"
       version = "~> 0.1"
     }
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
   }
 }
 
@@ -21,26 +17,14 @@ provider "hcloud" {
   token = var.hcloud_token
 }
 
-provider "aws" {
-  region = "hel1"
-  endpoints {
-    s3 = "https://hel1.your-objectstorage.com"
-  }
-
-  skip_credentials_validation = true
-  skip_metadata_api_check     = true
-  skip_region_validation      = true
-  skip_requesting_account_id  = true
-}
-
 # --- SSH Key ---
 
 data "hcloud_ssh_key" "default" {
-  name = "daniel-passy-key"
+  name = "monorepo-hetzner-2026-07"
 }
 
 data "hcloud_ssh_key" "ci" {
-  name = "monorepo-ci"
+  name = "monorepo-ci-2026-07"
 }
 
 # --- Network ---
@@ -189,15 +173,4 @@ resource "hcloud_server" "agent" {
   }
 
   depends_on = [hcloud_network_subnet.nodes, null_resource.wait_for_k3s]
-}
-
-# --- Frontend Object Storage ---
-
-resource "aws_s3_bucket" "frontend" {
-  bucket = "${var.project_name}-frontend"
-}
-
-resource "aws_s3_bucket_acl" "frontend" {
-  bucket = aws_s3_bucket.frontend.id
-  acl    = "public-read"
 }

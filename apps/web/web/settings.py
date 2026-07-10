@@ -34,6 +34,7 @@ class WebSettings(BaseSettings):
     )
     cors_allow_credentials: bool = True
     sentry_dsn: str = "https://5769e9dcbef88ed9642b485ee53ec038@o4510981978128384.ingest.us.sentry.io/4511231779667968"
+    frontend_dist_dir: Path = Path("/app/frontend")
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

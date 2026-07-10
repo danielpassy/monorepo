@@ -13,11 +13,14 @@ cp .env.example .env
 
 ## Docker
 
-Must be built from the monorepo root. The web image is based on
-`monorepo-python-base:dev`, so build the shared base image first and wait for
-that build to finish before building the web image:
+The image includes the compiled frontend. Build those assets first, then build
+the shared Python base and web images from the monorepo root:
 
 ```bash
+cd apps/frontend
+vp install
+vp run build
+cd ../..
 docker compose build base
 docker build -f apps/web/Dockerfile .
 ```

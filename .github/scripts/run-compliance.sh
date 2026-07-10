@@ -9,6 +9,12 @@ if git ls-files '*.env' | grep -q .; then
   exit 1
 fi
 
+if git ls-files '*.tfstate' '*.tfstate.backup' | grep -q .; then
+  echo "Committed Terraform state files are not allowed"
+  git ls-files '*.tfstate' '*.tfstate.backup'
+  exit 1
+fi
+
 if git grep -nE 'AKIA[0-9A-Z]{16}' -- . ':!*.lock' >/dev/null; then
   echo "Potential AWS access key detected"
   git grep -nE 'AKIA[0-9A-Z]{16}' -- . ':!*.lock'

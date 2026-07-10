@@ -25,14 +25,14 @@
 ### docker-compose (local dev)
 - `postgres:17` — single shared DB: `monorepo`
 - `redis:7-alpine` — session store for the web app
-- `web` — FastAPI app, port 8001→8000, `DATABASE_URL`→`monorepo`
+- `web` — FastAPI app, port 8001→8000, `DATABASE_URL`→`monorepo`; production image also serves the built frontend from `/app/frontend`
 - `base` — shared base Docker image (`monorepo-python-base:dev`) used by web builds
 
 ### Kubernetes (production — k3s on Hetzner)
 - Namespace: `monorepo`
 - Ingress: Traefik with Let's Encrypt via Cloudflare DNS challenge
   - `api.rafaellapontes.com.br` → `web` service (port 80), rate-limited (30 req/min, burst 10)
-  - `app.rafaellapontes.com.br` → frontend served from Hetzner Object Storage (ExternalName service)
+  - `app.rafaellapontes.com.br` → `web` service serving the frontend bundle from the container image
 - Web init container runs `alembic -c web/migrations/alembic.ini upgrade head` before the app container starts
 - Redis deployed as `redis-broker` Deployment+Service, password from k8s Secret
 - Traefik configured via `HelmChartConfig` in `kube-system`
