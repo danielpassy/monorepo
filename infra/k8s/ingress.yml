@@ -5,9 +5,9 @@ metadata:
   namespace: monorepo
 spec:
   rateLimit:
-    average: 30
+    average: 3000
     period: 1m
-    burst: 10
+    burst: 500
     sourceCriterion:
       ipStrategy:
         depth: 0
